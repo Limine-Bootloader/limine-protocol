@@ -8,7 +8,7 @@ the Limine boot protocol is comprised of. Other bootloaders may support extra
 unofficial features, but it is strongly recommended to avoid fragmentation
 and submit new features by opening a pull request to the Limine repository.
 
-The [limine.h](/limine.h) file provides an implementation of all the
+The [limine.h](/include/limine.h) file provides an implementation of all the
 structures and constants described in this document, for the C and C++
 languages.
 
