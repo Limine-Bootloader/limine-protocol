@@ -1161,7 +1161,9 @@ struct limine_file {
 
 * `revision` - Revision of the `struct limine_file` structure.
 * `address` - The address of the file. This is always at least 4KiB aligned.
-* `size` - The size of the file.
+* `size` - The size of the file. Regardless of the file size, all loaded
+modules are guaranteed to have all 4KiB chunks of memory they cover for
+themselves exclusively.
 * `path` - The path of the file within the volume, with a leading slash.
 * `string` - A string associated with the file.
 * `media_type` - Type of media file resides on.
