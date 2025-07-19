@@ -987,15 +987,38 @@ struct limine_memmap_entry {
 };
 ```
 
-All these memory entry types, besides usable and bootloader reclaimable,
-are meant to have an illustrative purpose only, and are not authoritative sources
-to be used as a means to find the addresses of the executable, modules, framebuffer, ACPI,
-or otherwise. Use the specific Limine features to do that, if available, or other
-discovery means.
+* `LIMINE_MEMMAP_USABLE` entries represent regions of the address space that are usable RAM,
+and do not contain other data, the executable, bootloader information, or anything valuable,
+and are therefore free for use.
+
+* `LIMINE_MEMMAP_RESERVED` entries represent regions of the address space that are
+reserved for unspecified purposes by the firmware, hardware, or otherwise, and should not
+be touched by the executable.
+
+* `LIMINE_MEMMAP_ACPI_RECLAIMABLE` entries represent regions of the address space containing
+ACPI related data, such as ACPI tables and AML code. The executable should make absolutely
+sure that no data contained in these regions is still needed before deciding to reclaim
+these memory regions for itself. Refer to the ACPI specification for further information.
+
+* `LIMINE_MEMMAP_ACPI_NVS` entries represent regions of the address space used for ACPI
+non-volatile data storage. Refer to the ACPI specification for further information.
+
+* `LIMINE_MEMMAP_BAD_MEMORY` entries represent regions of the address space that contain
+bad RAM, which may be unreliable, and therefore these regions should be treated the same
+as reserved regions.
+
+* `LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE` entries represent regions of the address space
+containing RAM used to store bootloader or firmware information that should be available
+to the executable (or, in some cases, hardware, such as for MP trampolines). The executable
+should make absolutely sure that no data contained in these regions is still needed before
+deciding to reclaim these memory regions for itself.
+
+* `LIMINE_MEMMAP_EXECUTABLE_AND_MODULES` entries are meant to have an illustrative purpose
+only, and are not authoritative sources to be used as a means to find the addresses of the
+executable or modules. One must use the specific Limine features (executable address and
+module features) to do that.
 
 For base revisions <= 2, memory between 0 and 0x1000 is never marked as usable memory.
-
-The executable and modules loaded are not marked as usable memory, but as Executable/Modules.
 
 The entries are guaranteed to be sorted by base address, lowest to highest.
 
