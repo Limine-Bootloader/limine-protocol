@@ -1018,6 +1018,11 @@ only, and are not authoritative sources to be used as a means to find the addres
 executable or modules. One must use the specific Limine features (executable address and
 module features) to do that.
 
+* `LIMINE_MEMMAP_FRAMEBUFFER` entries represent regions of the address space containing
+memory-mapped framebuffers. These entries exist for illustrative purposes only, and are
+not to be used to acquire the address of any framebuffer. One must use the framebuffer
+feature for that.
+
 For base revisions <= 2, memory between 0 and 0x1000 is never marked as usable memory.
 
 The entries are guaranteed to be sorted by base address, lowest to highest.
