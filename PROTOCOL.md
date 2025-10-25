@@ -28,14 +28,14 @@ The calling convention matches the C ABI for the specific architecture
 
 ## Base protocol revisions
 
-The Limine boot protocol comes in several base revisions; so far, 4
-base revisions are specified: 0 through 3.
+The Limine boot protocol comes in several base revisions; so far, 5
+base revisions are specified: 0 through 4.
 
 Base protocol revisions change certain behaviours of the Limine boot protocol
 outside any specific feature. The specifics are going to be described as
 needed throughout this specification.
 
-Base revision 0 through 2 are considered deprecated. Base revision 0 is the default base revision
+Base revision 0 through 3 are considered deprecated. Base revision 0 is the default base revision
 an executable is assumed to be requesting and complying to if no base revision tag
 is provided by the executable, for backwards compatibility.
 
@@ -63,10 +63,10 @@ revision and *it* is responsible for failing to boot the executable, in case the
 bootloader does not yet support the executable's requested base revision,
 it is up to the executable itself to fail (or handle the condition otherwise).
 
-For any Limine-compliant bootloader supporting base revision 3, it is *mandatory*
-to load executables requesting higher unsupported base revisions with at least
-base revision 3, and it is mandatory for it to always set the 2nd component of
-the base revision tag to the base revision actually used to load the executable,
+For any Limine-compliant bootloader supporting base revision 3 or greater, it is
+*mandatory* to load executables requesting higher unsupported base revisions with
+at least base revision 3, and it is mandatory for it to always set the 2nd component
+of the base revision tag to the base revision actually used to load the executable,
 regardless of whether it was the requested one or not.
 
 ## Features
@@ -197,14 +197,25 @@ of types:
  - Reserved
  - Bad memory
 
-For base revision 3, the only memory map regions mapped to the HHDM are:
+For base revision 3 or greater, the only memory map regions mapped to the HHDM are:
  - Usable
  - Bootloader reclaimable
  - Executable and modules
  - Framebuffer
 
-For base revision 3, the unconditional direct map of the first 4GiB is dropped, and
-only memory map regions of complying types are mapped in.
+For base revision 3 or greater, the unconditional direct map of the first 4GiB is
+dropped, and only memory map regions of complying types are mapped in.
+
+For base revision 4 or greater, the following regions are also mapped in addition
+to those mapped by base revision 3:
+ - ACPI tables
+ - ACPI reclaimable
+ - ACPI NVS
+
+For base revision 4 or greater, ACPI tables (that being RSDP, RSDT, XSDT, all
+tables pointed to by RSDT and XSDT, FACS, X_FACS, DSDT, X_DSDT - if present and
+possible to map) are guaranteed to be mapped within any of the 3 ACPI memory map
+regions.
 
 The bootloader page tables are in bootloader-reclaimable memory (see Memory Map
 feature below), and their specific layout is undefined as long as they provide
@@ -979,6 +990,7 @@ struct limine_memmap_response {
 #define LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE 5
 #define LIMINE_MEMMAP_EXECUTABLE_AND_MODULES 6
 #define LIMINE_MEMMAP_FRAMEBUFFER            7
+#define LIMINE_MEMMAP_ACPI_TABLES            8
 
 struct limine_memmap_entry {
     uint64_t base;
@@ -1022,6 +1034,11 @@ module features) to do that.
 memory-mapped framebuffers. These entries exist for illustrative purposes only, and are
 not to be used to acquire the address of any framebuffer. One must use the framebuffer
 feature for that.
+
+* `LIMINE_MEMMAP_ACPI_TABLES` (base revision 4 or greater) entries represent regions
+of the address space containing the ACPI tables as described by the Entry Memory Layout
+paragraph, if the firmware did not already map them within either an ACPI reclaimable
+or an ACPI NVS region.
 
 For base revisions <= 2, memory between 0 and 0x1000 is never marked as usable memory.
 
@@ -1233,7 +1250,7 @@ struct limine_rsdp_response {
 };
 ```
 
-* `address` - Address of the RSDP table. Physical for base revision >= 3.
+* `address` - Address of the RSDP table. Physical for base revision 3 **only**.
 
 ### SMBIOS Feature
 
