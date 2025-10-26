@@ -937,7 +937,7 @@ Request:
 struct limine_riscv_bsp_hartid_request {
     uint64_t id[4];
     uint64_t revision;
-    LIMINE_PTR(struct limine_riscv_bsp_hartid_response *) response;
+    struct limine_riscv_bsp_hartid_response *response;
 };
 ```
 
