@@ -1054,6 +1054,16 @@ entry. To the contrary, all non-usable entries (including executable/modules) ar
 not guaranteed any alignment, nor is it guaranteed that they do not overlap
 other entries.
 
+#### UEFI Memory Map Entry Type to Limine Memory Map Type
+
+UEFI memory map entry types are converted to Limine memory map type as follows:
+* EfiLoaderCode, EfiLoaderData -> `BOOTLOADER_RECLAIMABLE`
+* EfiBootServicesCode, EfiBootServicesData -> `BOOTLOADER_RECLAIMABLE`
+* EfiACPIReclaimMemory -> `ACPI_RECLAIMABLE`
+* EfiACPIMemoryNVS -> `ACPI_NVS`
+* EfiConventionalMemory -> `USABLE`
+* [anything else] -> `RESERVED`
+
 ### Entry Point Feature
 
 ID:
