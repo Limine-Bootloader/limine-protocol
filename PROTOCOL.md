@@ -1258,7 +1258,7 @@ Response:
 ```c
 struct limine_rsdp_response {
     uint64_t revision;
-    uint64_t address;
+    void *address;
 };
 ```
 
