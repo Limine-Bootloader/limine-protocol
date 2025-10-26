@@ -263,6 +263,8 @@ framebuffer on the platform.
 The `MAIR_EL1` register will at least contain entries for the above-mentioned
 caching modes, in an unspecified order.
 
+For base revision 4 and greater, `MAIR_EL1.Attr0` is guaranteed to be `0xff`.
+
 In order to access MMIO regions, the executable must ensure the correct caching mode
 is used on its own.
 
