@@ -113,7 +113,7 @@ On the other hand, if the executable's requested base revision is supported,
 *the 3rd component of the base revision tag must be set to 0 by the bootloader*.
 
 > [!NOTE]
-> this means that unlike when the bootloader drops support for an older base
+> This means that unlike when the bootloader drops support for an older base
 > revision and *it* is responsible for failing to boot the executable, in case the
 > bootloader does not yet support the executable's requested base revision,
 > it is up to the executable itself to fail (or handle the condition otherwise).
@@ -208,7 +208,7 @@ rather than them just being a hint.
 ## Limine Requests Section
 
 > [!WARNING]
-> *This behaviour is deprecated and removed as of base protocol revision 1*
+> This behaviour is deprecated and removed as of base protocol revision 1
 
 For executables requesting deprecated base revision 0,
 if the executable file contains a `.limine_reqs` section, the bootloader
@@ -385,7 +385,7 @@ The A20 gate is opened.
 Legacy PIC (if available) and IO APIC IRQs (only those with delivery mode fixed
 (0b000) or lowest priority (0b001)) are all masked.
 
-If booted by EFI/UEFI, boot services are exited.
+If booted by EFI, boot services are exited.
 
 `rsp` is set to point to a stack, in bootloader-reclaimable memory, which is
 at least 64KiB (65536 bytes) in size, or the size specified in the
@@ -432,7 +432,7 @@ For base revision 0, `TTBR0_EL1` points to the bootloader-provided identity
 mapping page tables, and is unspecified for all other base revisions and can
 thus be freely used by the executable.
 
-If booted by EFI/UEFI, boot services are exited.
+If booted by EFI, boot services are exited.
 
 `SP` is set to point to a stack, in bootloader-reclaimable memory, which is
 at least 64KiB (65536 bytes) in size, or the size specified in the
@@ -459,7 +459,7 @@ at least 64KiB (65536 bytes) in size, or the size specified in the
 
 All other general purpose registers, with the exception of `x5`(`t0`), are set to 0.
 
-If booted by EFI/UEFI, boot services are exited.
+If booted by EFI, boot services are exited.
 
 `stvec` is in an undefined state. `sstatus.SIE` and `sie` are set to 0.
 
@@ -485,7 +485,7 @@ at least 64KiB (65536 bytes) in size, or the size specified in the
 
 All other general purpose registers, with the exception of `$r12`(`$t0`), are set to 0.
 
-If booted by EFI/UEFI, boot services are exited.
+If booted by EFI, boot services are exited.
 
 `CSR.EENTRY`, `CSR.MERRENTRY` and `CSR.DWM0-3` are in an undefined state.
 
@@ -584,8 +584,8 @@ struct limine_firmware_type_response {
 `firmware_type` is an enumeration that can have one of the following values:
 ```c
 #define LIMINE_FIRMWARE_TYPE_X86BIOS 0
-#define LIMINE_FIRMWARE_TYPE_UEFI32 1
-#define LIMINE_FIRMWARE_TYPE_UEFI64 2
+#define LIMINE_FIRMWARE_TYPE_EFI32 1
+#define LIMINE_FIRMWARE_TYPE_EFI64 2
 #define LIMINE_FIRMWARE_TYPE_SBI 3
 ```
 
@@ -957,7 +957,7 @@ struct limine_mp_response {
 ```
 
 * `flags` - Always zero
-* `bsp_hartid` - Hart ID of the bootstrap processor as reported by the UEFI RISC-V Boot Protocol or the SBI.
+* `bsp_hartid` - Hart ID of the bootstrap processor as reported by the EFI RISC-V Boot Protocol or the SBI.
 * `cpu_count` - How many CPUs are present. It includes the bootstrap processor.
 * `cpus` - Pointer to an array of `cpu_count` pointers to
 `struct limine_mp_info` structures.
@@ -1120,9 +1120,9 @@ entry. To the contrary, all non-usable entries (including executable/modules) ar
 not guaranteed any alignment, nor is it guaranteed that they do not overlap
 other entries.
 
-#### UEFI Memory Map Entry Type to Limine Memory Map Type
+#### EFI Memory Map Entry Type to Limine Memory Map Type
 
-UEFI memory map entry types are converted to Limine memory map type as follows:
+EFI memory map entry types are converted to Limine memory map type as follows:
 * EfiLoaderCode, EfiLoaderData -> `BOOTLOADER_RECLAIMABLE`
 * EfiBootServicesCode, EfiBootServicesData -> `BOOTLOADER_RECLAIMABLE`
 * EfiACPIReclaimMemory -> `ACPI_RECLAIMABLE`
