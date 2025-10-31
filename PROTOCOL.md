@@ -12,6 +12,48 @@ The [limine.h](/include/limine.h) file provides an implementation of all the
 structures and constants described in this document, for the C and C++
 languages.
 
+
+---
+
+## Table of Contents
+
+- [General Notes](#general-notes)
+- [Base Protocol Revisions](#base-protocol-revisions)
+- [Features](#features)
+- [Requests Delimiters](#requests-delimiters)
+- [Limine Requests Section](#limine-requests-section)
+- [Entry Memory Layout](#entry-memory-layout)
+- [Caching](#caching)
+  - [x86-64](#x86-64)
+  - [aarch64](#aarch64)
+  - [riscv64](#riscv64)
+  - [loongarch64](#loongarch64)
+- [Machine State at Entry](#machine-state-at-entry)
+- [Feature List](#feature-list)
+  - [Bootloader Info](#bootloader-info-feature)
+  - [Executable Command Line](#executable-command-line-feature)
+  - [Firmware Type](#firmware-type-feature)
+  - [Stack Size](#stack-size-feature)
+  - [HHDM (Higher Half Direct Map)](#hhdm-higher-half-direct-map-feature)
+  - [Framebuffer](#framebuffer-feature)
+  - [Paging Mode](#paging-mode-feature)
+  - [MP (Multiprocessor)](#mp-multiprocessor-feature)
+  - [RISC-V BSP Hart ID](#risc-v-bsp-hart-id-feature)
+  - [Memory Map](#memory-map-feature)
+  - [Entry Point](#entry-point-feature)
+  - [Executable File](#executable-file-feature)
+  - [Module](#module-feature)
+  - [RSDP](#rsdp-feature)
+  - [SMBIOS](#smbios-feature)
+  - [EFI System Table](#efi-system-table-feature)
+  - [EFI Memory Map](#efi-memory-map-feature)
+  - [Date at Boot](#date-at-boot-feature)
+  - [Executable Address](#executable-address-feature)
+  - [Device Tree Blob](#device-tree-blob-feature)
+  - [Bootloader Performance](#bootloader-performance-feature)
+
+---
+
 ## General Notes
 
 The "executable" is the kernel or otherwise the freestanding application being loaded
@@ -58,10 +100,11 @@ arbitrary revision it supports, and communicate failure to comply to the executa
 On the other hand, if the executable's requested base revision is supported,
 *the 3rd component of the base revision tag must be set to 0 by the bootloader*.
 
-Note: this means that unlike when the bootloader drops support for an older base
-revision and *it* is responsible for failing to boot the executable, in case the
-bootloader does not yet support the executable's requested base revision,
-it is up to the executable itself to fail (or handle the condition otherwise).
+> [!NOTE]
+> this means that unlike when the bootloader drops support for an older base
+> revision and *it* is responsible for failing to boot the executable, in case the
+> bootloader does not yet support the executable's requested base revision,
+> it is up to the executable itself to fail (or handle the condition otherwise).
 
 For any Limine-compliant bootloader supporting base revision 3 or greater, it is
 *mandatory* to load executables requesting higher unsupported base revisions with
@@ -93,12 +136,14 @@ may be located anywhere inside the loaded executable image as long as they are 8
 aligned. There may only be 1 of the same request. The bootloader will refuse
 to boot an executable with multiple of the same request IDs. Alternatively,
 it is possible to provide a list of requests explicitly via an executable file section.
-See "Limine Requests Section". (Note: this is deprecated and removed in base revision 1)
+See the [Limine Requests Section](#limine-requests-section).
+*(Note: the Limine Requests Section is deprecated and removed in base revision 1)*
+
 * `revision` - The revision of the request that the executable provides. This starts at 0 and is
 bumped whenever new members or functionality are added to the request structure.
 Bootloaders process requests in a backwards compatible manner, *always*. This
 means that if the bootloader does not support the revision of the request,
-it will process the request as if were the highest revision that the bootloader
+it will process the request as if it were the highest revision that the bootloader
 supports.
 * `response` - This field is filled in by the bootloader at load time, with a
 pointer to the response structure, if the request was successfully processed.
@@ -150,10 +195,11 @@ rather than them just being a hint.
 
 ## Limine Requests Section
 
-Note: *This behaviour is deprecated and removed as of base protocol revision 1*
+> [!WARNING]
+> *This behaviour is deprecated and removed as of base protocol revision 1*
 
 For executables requesting deprecated base revision 0,
-if the executable executable file contains a `.limine_reqs` section, the bootloader
+if the executable file contains a `.limine_reqs` section, the bootloader
 will, instead of scanning the executable for requests, fetch the requests
 from a NULL-terminated array of pointers to the provided requests, contained
 inside said section.
@@ -170,8 +216,8 @@ or above `0xffffffff80000000`).
 
 No specific physical memory placement is guaranteed, except that the loaded executable image
 is guaranteed to be physically contiguous. In order to determine
-where the executable is loaded in physical memory, see the Executable Address feature
-below.
+where the executable is loaded in physical memory, see the
+[Executable Address feature](#executable-address-feature).
 
 Alongside the loaded executable, the bootloader will set up memory mappings as such:
 
@@ -186,7 +232,7 @@ Alongside the loaded executable, the bootloader will set up memory mappings as s
   0x0000000000000000   |  memory map regions depending |      HHDM start
                        |       on base revision        |
 ```
-Where "HHDM start" is returned by the Higher Half Direct Map feature (see below).
+Where "HHDM start" is returned by the [Higher Half Direct Map feature](#hhdm-higher-half-direct-map-feature).
 These mappings are supervisor, read, write, execute (-rwx).
 
 For base revision 0, the above-4GiB identity and HHDM mappings cover any memory
@@ -217,8 +263,8 @@ tables pointed to by RSDT and XSDT, FACS, X_FACS, DSDT, X_DSDT - if present and
 possible to map) are guaranteed to be mapped within any of the 3 ACPI memory map
 regions.
 
-The bootloader page tables are in bootloader-reclaimable memory (see Memory Map
-feature below), and their specific layout is undefined as long as they provide
+The bootloader page tables are in bootloader-reclaimable memory (see the
+[Memory Map feature](#memory-map-feature)), and their specific layout is undefined as long as they provide
 the above memory mappings.
 
 If the executable is a position independent executable, the bootloader is free to
@@ -295,7 +341,7 @@ Weakly-ordered UnCached (WUC) MAT.
 ### x86-64
 
 `rip` will be the entry point as defined as part of the executable file format,
-unless the Entry Point feature is requested (see below), in which case, the value
+unless the [Entry Point feature](#entry-point-feature) is requested, in which case, the value
 of `rip` is going to be taken from there.
 
 At entry all segment registers are loaded as 64 bit code/data segments, limits
@@ -330,8 +376,8 @@ Legacy PIC (if available) and IO APIC IRQs (only those with delivery mode fixed
 If booted by EFI/UEFI, boot services are exited.
 
 `rsp` is set to point to a stack, in bootloader-reclaimable memory, which is
-at least 64KiB (65536 bytes) in size, or the size specified in the Stack
-Size Request (see below). An invalid return address of 0 is pushed
+at least 64KiB (65536 bytes) in size, or the size specified in the
+[Stack Size feature](#stack-size-feature). An invalid return address of 0 is pushed
 to the stack before jumping to the executable.
 
 All other general purpose registers are set to 0.
@@ -339,7 +385,7 @@ All other general purpose registers are set to 0.
 ### aarch64
 
 `PC` will be the entry point as defined as part of the executable file format,
-unless the Entry Point feature is requested (see below), in which case,
+unless the [Entry Point feature](#entry-point-feature) is requested, in which case,
 the value of `PC` is going to be taken from there.
 
 The contents of the `VBAR_EL1` register are undefined, and the executable must load
@@ -377,8 +423,8 @@ thus be freely used by the executable.
 If booted by EFI/UEFI, boot services are exited.
 
 `SP` is set to point to a stack, in bootloader-reclaimable memory, which is
-at least 64KiB (65536 bytes) in size, or the size specified in the Stack
-Size Request (see below).
+at least 64KiB (65536 bytes) in size, or the size specified in the
+[Stack Size feature](#stack-size-feature).
 
 All other general purpose registers (including `X29` and `X30`) are set to 0.
 Vector registers are in an undefined state.
@@ -388,14 +434,14 @@ Vector registers are in an undefined state.
 At entry the machine is executing in Supervisor mode.
 
 `pc` will be the entry point as defined as part of the executable file format,
-unless the Entry Point feature is requested (see below), in which case, the
+unless the [Entry Point feature](#entry-point-feature) is requested, in which case, the
 value of `pc` is going to be taken from there.
 
 `x1`(`ra`) is set to 0, the executable must not return from the entry point.
 
 `x2`(`sp`) is set to point to a stack, in bootloader-reclaimable memory, which is
-at least 64KiB (65536 bytes) in size, or the size specified in the Stack
-Size Request (see below).
+at least 64KiB (65536 bytes) in size, or the size specified in the
+[Stack Size feature](#stack-size-feature).
 
 `x3`(`gp`) is set to 0, executable must load its own global pointer if needed.
 
@@ -407,7 +453,7 @@ If booted by EFI/UEFI, boot services are exited.
 
 `sstatus.FS` and `sstatus.XS` are both set to `Off`.
 
-Paging is enabled with the paging mode specified by the Paging Mode feature (see below).
+Paging is enabled with the paging mode specified by the [Paging Mode feature](#paging-mode-feature).
 
 The (A)PLIC, if present, is in an undefined state.
 
@@ -416,14 +462,14 @@ The (A)PLIC, if present, is in an undefined state.
 At entry the machine is executing in PLV0.
 
 `$pc` will be the entry point as defined as part of the executable file format,
-unless the Entry Point feature is requested (see below), in which case, the
+unless the [Entry Point feature](#entry-point-feature) is requested, in which case, the
 value of `$pc` is going to be taken from there.
 
 `$r1`(`$ra`) is set to 0, the executable must not return from the entry point.
 
 `$r3`(`$sp`) is set to point to a stack, in bootloader-reclaimable memory, which is
-at least 64KiB (65536 bytes) in size, or the size specified in the Stack
-Size Request (see below).
+at least 64KiB (65536 bytes) in size, or the size specified in the
+[Stack Size feature](#stack-size-feature).
 
 All other general purpose registers, with the exception of `$r12`(`$t0`), are set to 0.
 
@@ -802,11 +848,13 @@ struct limine_mp_response {
 * `cpus` - Pointer to an array of `cpu_count` pointers to
 `struct limine_mp_info` structures.
 
-Note: The presence of this request will prompt the bootloader to bootstrap
-the secondary processors. This will not be done if this request is not present.
+> [!NOTE]
+> The presence of this request will prompt the bootloader to bootstrap
+> the secondary processors. This will not be done if this request is not present.
 
-Note: The MTRRs of APs will be synchronised by the bootloader to match
-the BSP, as Intel SDM requires (Vol. 3A, 12.11.5).
+> [!NOTE]
+> The MTRRs of APs will be synchronised by the bootloader to match
+> the BSP, as Intel SDM requires (Vol. 3A, 12.11.5).
 
 ```c
 struct limine_mp_info;
@@ -853,8 +901,9 @@ struct limine_mp_response {
 * `cpus` - Pointer to an array of `cpu_count` pointers to
 `struct limine_mp_info` structures.
 
-Note: The presence of this request will prompt the bootloader to bootstrap
-the secondary processors. This will not be done if this request is not present.
+> [!NOTE]
+> The presence of this request will prompt the bootloader to bootstrap
+> the secondary processors. This will not be done if this request is not present.
 
 ```c
 struct limine_mp_info;
@@ -901,8 +950,9 @@ struct limine_mp_response {
 * `cpus` - Pointer to an array of `cpu_count` pointers to
 `struct limine_mp_info` structures.
 
-Note: The presence of this request will prompt the bootloader to bootstrap
-the secondary processors. This will not be done if this request is not present.
+> [!NOTE]
+> The presence of this request will prompt the bootloader to bootstrap
+> the secondary processors. This will not be done if this request is not present.
 
 ```c
 struct limine_mp_info;
@@ -953,8 +1003,9 @@ struct limine_riscv_bsp_hartid_response {
 ```
 
 * `bsp_hartid` - The Hart ID of the boot processor.
-Note: This request contains the same information as `limine_mp_response.bsp_hartid`,
-but doesn't boot up other APs.
+> [!NOTE]
+> This request contains the same information as `limine_mp_response.bsp_hartid`,
+> but doesn't boot up other APs.
 
 ### Memory Map Feature
 
@@ -1119,7 +1170,8 @@ struct limine_executable_file_response {
 };
 ```
 
-* `executable_file` - Pointer to the `struct limine_file` structure (see below)
+* `executable_file` - Pointer to the `struct limine_file` structure (see
+[File Structure](#file-structure) below).
 for the executable file. The `string` member is equivalent to the `cmdline` value as reported by
 the Executable Command Line feature.
 
@@ -1156,7 +1208,8 @@ struct limine_module_request {
 * `internal_modules` - Pointer to an array of `internal_module_count` pointers to
 `struct limine_internal_module` structures.
 
-Note: Internal modules are honoured if the module response has revision >= 1.
+> [!NOTE]
+> Internal modules are honoured if the module response has revision >= 1.
 
 As part of `struct limine_internal_module`:
 
@@ -1185,7 +1238,7 @@ struct limine_module_response {
 
 * `module_count` - How many modules are present.
 * `modules` - Pointer to an array of `module_count` pointers to
-`struct limine_file` structures (see below).
+`struct limine_file` structures (see [File Structure](#file-structure) below).
 
 ### File Structure
 
@@ -1353,8 +1406,9 @@ struct limine_efi_memmap_response {
 * `desc_size` - EFI memory map descriptor size in bytes.
 * `desc_version` - Version of EFI memory map descriptors.
 
-Note: This feature provides data suitable for use with RT->SetVirtualAddressMap(), provided
-HHDM offset is subtracted from `memmap`.
+> [!NOTE]
+> This feature provides data suitable for use with RT->SetVirtualAddressMap(), provided
+> HHDM offset is subtracted from `memmap`.
 
 ### Date at Boot Feature
 
@@ -1436,13 +1490,16 @@ struct limine_dtb_response {
 
 * `dtb_ptr` - Virtual (HHDM) pointer to the device tree blob, in bootloader reclaimable memory.
 
-Note: If the DTB cannot be found, the response will *not* be generated.
+> [!NOTE]
+> If the DTB cannot be found, the response will *not* be generated.
 
-Note: Information contained in the `/chosen` node may not reflect the information
-given by bootloader tags, and as such the `/chosen` node properties should be ignored.
+> [!NOTE]
+> Information contained in the `/chosen` node may not reflect the information
+> given by bootloader tags, and as such the `/chosen` node properties should be ignored.
 
-Note: If the DTB contained `memory@...` nodes, they will get removed.
-Executables may not rely on these nodes and should use the Memory Map feature instead.
+> [!NOTE]
+> If the DTB contained `memory@...` nodes, they will get removed.
+> Executables may not rely on these nodes and should use the Memory Map feature instead.
 
 ### Bootloader Performance Feature
 
@@ -1476,10 +1533,13 @@ the past.
 * `exec_usec` - time of executable handoff in microseconds relative to an arbitrary point in the
 past.
 
-Note: Data provided by this feature is purely informational. The ACPI Firmware Performance Data
-Table may have more correct data and should be preferred if it exists. Bootloaders may implement
-this feature using the FPDT.
+> [!NOTE]
+> Data provided by this feature is purely informational. The ACPI Firmware Performance Data
+> Table may have more correct data and should be preferred if it exists. Bootloaders may implement
+> this feature using the FPDT.
 
-Note: The bootloader may assume `reset_usec` is zero if it cannot or does not know the time of
-system reset, due to implementation or platform restrictions. `reset_usec` will usually be 0 or a
-value near zero, but may be any value relative to any point in the past.
+> [!NOTE]
+> The bootloader may assume `reset_usec` is zero if it cannot or does not know the time of
+> system reset, due to implementation or platform restrictions. `reset_usec` will usually be 0 or a
+> value near zero, but may be any value relative to any point in the past.
+
