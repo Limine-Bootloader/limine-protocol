@@ -44,6 +44,17 @@ extern "C" {
 #  define LIMINE_DEPRECATED_IGNORE_END
 #endif
 
+#ifdef __GNUC__
+#  define LIMINE_REQUEST_ATTRIBUTES volatile __attribute__((used, section(".limine_requests")))
+#  define LIMINE_REQUESTS_START_ATTRIBUTES volatile __attribute__((used, section(".limine_requests_start")))
+#  define LIMINE_REQUESTS_END_ATTRIBUTES volatile __attribute__((used, section(".limine_requests_end")))
+#else
+#  define LIMINE_MISSING_ATTRIBUTES request_attributes_are_only_available_if_compiler_is_gnu_compatible
+#  define LIMINE_REQUEST_ATTRIBUTES LIMINE_MISSING_ATTRIBUTES
+#  define LIMINE_REQUESTS_START_ATTRIBUTES LIMINE_MISSING_ATTRIBUTES
+#  define LIMINE_REQUESTS_END_ATTRIBUTES LIMINE_MISSING_ATTRIBUTES
+#endif
+
 #define LIMINE_REQUESTS_START_MARKER \
     uint64_t limine_requests_start_marker[4] = { 0xf6b8f4b39de7d1ae, 0xfab91a6940fcb9cf, \
                                                  0x785c6ed015d3e316, 0x181e920a7852b9d9 };
