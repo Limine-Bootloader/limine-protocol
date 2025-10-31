@@ -8,7 +8,7 @@ the Limine boot protocol is comprised of. Other bootloaders may support extra
 unofficial features, but it is strongly recommended to avoid fragmentation
 and submit new features by opening a pull request to the Limine repository.
 
-The [limine.h](/include/limine.h) file provides an implementation of all the
+The [limine.h](include/limine.h) file provides an implementation of all the
 structures and constants described in this document, for the C and C++
 languages.
 
@@ -29,6 +29,10 @@ languages.
   - [riscv64](#riscv64)
   - [loongarch64](#loongarch64)
 - [Machine State at Entry](#machine-state-at-entry)
+  - [x86-64](#x86-64-1)
+  - [aarch64](#aarch64-1)
+  - [riscv64](#riscv64-1)
+  - [loongarch64](#loongarch64-1)
 - [Feature List](#feature-list)
   - [Bootloader Info](#bootloader-info-feature)
   - [Executable Command Line](#executable-command-line-feature)
@@ -37,7 +41,14 @@ languages.
   - [HHDM (Higher Half Direct Map)](#hhdm-higher-half-direct-map-feature)
   - [Framebuffer](#framebuffer-feature)
   - [Paging Mode](#paging-mode-feature)
+    - [x86-64](#x86-64-2)
+    - [aarch64](#aarch64-2)
+    - [riscv64](#riscv64-2)
+    - [loongarch64](#loongarch64-2)
   - [MP (Multiprocessor)](#mp-multiprocessor-feature)
+    - [x86-64](#x86-64-3)
+    - [aarch64](#aarch64-3)
+    - [riscv64](#riscv64-3)
   - [RISC-V BSP Hart ID](#risc-v-bsp-hart-id-feature)
   - [Memory Map](#memory-map-feature)
   - [Entry Point](#entry-point-feature)
@@ -51,6 +62,7 @@ languages.
   - [Executable Address](#executable-address-feature)
   - [Device Tree Blob](#device-tree-blob-feature)
   - [Bootloader Performance](#bootloader-performance-feature)
+- [File Structure](#file-structure)
 
 ---
 
@@ -686,10 +698,10 @@ struct limine_framebuffer {
 };
 ```
 
+`edid` points to the screen's EDID blob, if available, else NULL.
+
 `modes` is an array of `mode_count` pointers to `struct limine_video_mode` describing the
 available video modes for the given framebuffer.
-
-`edid` points to the screen's EDID blob, if available, else NULL.
 
 ```c
 struct limine_video_mode {
@@ -1240,60 +1252,6 @@ struct limine_module_response {
 * `modules` - Pointer to an array of `module_count` pointers to
 `struct limine_file` structures (see [File Structure](#file-structure) below).
 
-### File Structure
-
-```c
-struct limine_uuid {
-    uint32_t a;
-    uint16_t b;
-    uint16_t c;
-    uint8_t d[8];
-};
-
-#define LIMINE_MEDIA_TYPE_GENERIC 0
-#define LIMINE_MEDIA_TYPE_OPTICAL 1
-#define LIMINE_MEDIA_TYPE_TFTP 2
-
-struct limine_file {
-    uint64_t revision;
-    void *address;
-    uint64_t size;
-    char *path;
-    char *string;
-    uint32_t media_type;
-    uint32_t unused;
-    uint32_t tftp_ip;
-    uint32_t tftp_port;
-    uint32_t partition_index;
-    uint32_t mbr_disk_id;
-    struct limine_uuid gpt_disk_uuid;
-    struct limine_uuid gpt_part_uuid;
-    struct limine_uuid part_uuid;
-};
-```
-
-* `revision` - Revision of the `struct limine_file` structure.
-* `address` - The address of the file. This is always at least 4KiB aligned.
-* `size` - The size of the file. Regardless of the file size, all loaded
-modules are guaranteed to have all 4KiB chunks of memory they cover for
-themselves exclusively.
-* `path` - The path of the file within the volume, with a leading slash.
-* `string` - A string associated with the file.
-* `media_type` - Type of media file resides on.
-* `tftp_ip` - If non-0, this is the IP of the TFTP server the file was loaded
-from.
-* `tftp_port` - Likewise, but port.
-* `partition_index` - 1-based partition index of the volume from which the
-file was loaded. If 0, it means invalid or unpartitioned.
-* `mbr_disk_id` - If non-0, this is the ID of the disk the file was loaded
-from as reported in its MBR.
-* `gpt_disk_uuid` - If non-0, this is the UUID of the disk the file was
-loaded from as reported in its GPT.
-* `gpt_part_uuid` - If non-0, this is the UUID of the partition the file
-was loaded from as reported in the GPT.
-* `part_uuid` - If non-0, this is the UUID of the filesystem of the partition
-the file was loaded from.
-
 ### RSDP Feature
 
 ID:
@@ -1543,3 +1501,56 @@ past.
 > system reset, due to implementation or platform restrictions. `reset_usec` will usually be 0 or a
 > value near zero, but may be any value relative to any point in the past.
 
+## File Structure
+
+```c
+struct limine_uuid {
+    uint32_t a;
+    uint16_t b;
+    uint16_t c;
+    uint8_t d[8];
+};
+
+#define LIMINE_MEDIA_TYPE_GENERIC 0
+#define LIMINE_MEDIA_TYPE_OPTICAL 1
+#define LIMINE_MEDIA_TYPE_TFTP 2
+
+struct limine_file {
+    uint64_t revision;
+    void *address;
+    uint64_t size;
+    char *path;
+    char *string;
+    uint32_t media_type;
+    uint32_t unused;
+    uint32_t tftp_ip;
+    uint32_t tftp_port;
+    uint32_t partition_index;
+    uint32_t mbr_disk_id;
+    struct limine_uuid gpt_disk_uuid;
+    struct limine_uuid gpt_part_uuid;
+    struct limine_uuid part_uuid;
+};
+```
+
+* `revision` - Revision of the `struct limine_file` structure.
+* `address` - The address of the file. This is always at least 4KiB aligned.
+* `size` - The size of the file. Regardless of the file size, all loaded
+modules are guaranteed to have all 4KiB chunks of memory they cover for
+themselves exclusively.
+* `path` - The path of the file within the volume, with a leading slash.
+* `string` - A string associated with the file.
+* `media_type` - Type of media file resides on.
+* `tftp_ip` - If non-0, this is the IP of the TFTP server the file was loaded
+from.
+* `tftp_port` - Likewise, but port.
+* `partition_index` - 1-based partition index of the volume from which the
+file was loaded. If 0, it means invalid or unpartitioned.
+* `mbr_disk_id` - If non-0, this is the ID of the disk the file was loaded
+from as reported in its MBR.
+* `gpt_disk_uuid` - If non-0, this is the UUID of the disk the file was
+loaded from as reported in its GPT.
+* `gpt_part_uuid` - If non-0, this is the UUID of the partition the file
+was loaded from as reported in the GPT.
+* `part_uuid` - If non-0, this is the UUID of the filesystem of the partition
+the file was loaded from.
