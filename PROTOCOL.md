@@ -22,7 +22,7 @@ languages.
 - [Features](#features)
 - [Requests Delimiters](#requests-delimiters)
 - [Limine Requests Section](#limine-requests-section)
-- [Entry Memory Layout](#entry-memory-layout)
+- [Memory Layout at Entry](#memory-layout-at-entry)
 - [Caching](#caching)
   - [x86-64](#x86-64)
   - [aarch64](#aarch64)
@@ -41,14 +41,7 @@ languages.
   - [HHDM (Higher Half Direct Map)](#hhdm-higher-half-direct-map-feature)
   - [Framebuffer](#framebuffer-feature)
   - [Paging Mode](#paging-mode-feature)
-    - [x86-64](#x86-64-2)
-    - [aarch64](#aarch64-2)
-    - [riscv64](#riscv64-2)
-    - [loongarch64](#loongarch64-2)
   - [MP (Multiprocessor)](#mp-multiprocessor-feature)
-    - [x86-64](#x86-64-3)
-    - [aarch64](#aarch64-3)
-    - [riscv64](#riscv64-3)
   - [RISC-V BSP Hart ID](#risc-v-bsp-hart-id-feature)
   - [Memory Map](#memory-map-feature)
   - [Entry Point](#entry-point-feature)
@@ -80,7 +73,7 @@ memory regions.
 The calling convention matches the C ABI for the specific architecture
 (SysV for x86, AAPCS LP64 for aarch64, LP64 for riscv64).
 
-## Base protocol revisions
+## Base Protocol Revisions
 
 The Limine boot protocol comes in several base revisions; so far, 5
 base revisions are specified: 0 through 4.
@@ -143,14 +136,15 @@ struct limine_example_request {
 };
 ```
 * `id` - The ID of the request. This is an 8-byte aligned magic number that the
-bootloader will scan for inside the loaded executable image to find requests. Requests
-may be located anywhere inside the loaded executable image as long as they are 8-byte
-aligned. There may only be 1 of the same request. The bootloader will refuse
-to boot an executable with multiple of the same request IDs. Alternatively,
-it is possible to provide a list of requests explicitly via an executable file section.
-See the [Limine Requests Section](#limine-requests-section).
-*(Note: the Limine Requests Section is deprecated and removed in base revision 1)*
-
+bootloader will scan for inside the loaded executable image to find requests.
+Request IDs are composed of 4 64-bit unsigned integers, but the first 2 are
+common to every request:
+```c
+#define LIMINE_COMMON_MAGIC 0xc7b1dd30df4c8b88, 0x0a82e883a194f07b
+```
+Requests may be located anywhere inside the loaded executable image as long as they are
+8-byte aligned. There may only be 1 of the same request. The bootloader will refuse
+to boot an executable with multiple of the same request IDs.
 * `revision` - The revision of the request that the executable provides. This starts at 0 and is
 bumped whenever new members or functionality are added to the request structure.
 Bootloaders process requests in a backwards compatible manner, *always*. This
@@ -216,7 +210,7 @@ will, instead of scanning the executable for requests, fetch the requests
 from a NULL-terminated array of pointers to the provided requests, contained
 inside said section.
 
-## Entry memory layout
+## Memory Layout at Entry
 
 The protocol mandates executables to load themselves at or above
 `0xffffffff80000000`. Lower half executables are *not supported*. For relocatable executables
@@ -348,7 +342,7 @@ All HHDM and identity map memory regions are mapped using the Coherent Cached (C
 MAT, except for the framebuffer regions, which are mapped in using the
 Weakly-ordered UnCached (WUC) MAT.
 
-## Machine state at entry
+## Machine State at Entry
 
 ### x86-64
 
@@ -494,12 +488,6 @@ If booted by EFI, boot services are exited.
 `CSR.TLBRENTRY` is filled with a provided TLB refill handler.
 
 ## Feature List
-
-Request IDs are composed of 4 64-bit unsigned integers, but the first 2 are
-common to every request:
-```c
-#define LIMINE_COMMON_MAGIC 0xc7b1dd30df4c8b88, 0x0a82e883a194f07b
-```
 
 ### Bootloader Info Feature
 
@@ -821,7 +809,7 @@ Values assignable to `mode`, `max_mode`, and `min_mode`:
 #define LIMINE_PAGING_MODE_MIN LIMINE_PAGING_MODE_LOONGARCH64_4LVL
 ```
 
-### MP (multiprocessor) Feature
+### MP (Multiprocessor) Feature
 
 ID:
 ```c
