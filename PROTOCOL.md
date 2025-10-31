@@ -146,13 +146,12 @@ struct limine_example_request {
 };
 ```
 * `id` - The ID of the request. This is an 8-byte aligned magic number that the
-bootloader will scan for inside the loaded executable image to find requests.
-Request IDs are composed of 4 64-bit unsigned integers, but the first 2 are
-common to every request:
-```c
+    bootloader will scan for inside the loaded executable image to find requests.
+    Request IDs are composed of 4 64-bit unsigned integers, but the first 2 are
+    common to every request:
+    ```c
     #define LIMINE_COMMON_MAGIC 0xc7b1dd30df4c8b88, 0x0a82e883a194f07b
-```
-
+    ```
     Requests may be located anywhere inside the loaded executable image as long as they are
     8-byte aligned. There may only be 1 of the same request. The bootloader will refuse
     to boot an executable with multiple of the same request IDs.
