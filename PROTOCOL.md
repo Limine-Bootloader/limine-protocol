@@ -3,10 +3,11 @@
 The Limine boot protocol is a modern, portable, featureful, and extensible boot
 protocol.
 
-This file serves as the official centralised collection of features that
-the Limine boot protocol is comprised of. Other bootloaders may support extra
-unofficial features, but it is strongly recommended to avoid fragmentation
-and submit new features by opening a pull request to the Limine repository.
+This file serves as the protocol's specification and as the official, centralised
+collection of features that the Limine boot protocol is comprised of.
+Bootloaders may support extra unofficial features, but it is strongly recommended
+to avoid fragmentation and submit new features by opening a pull request to the
+[limine-protocol Codeberg repository](https://codeberg.org/Limine/limine-protocol).
 
 The [limine.h](include/limine.h) file provides an implementation of all the
 structures and constants described in this document, for the C and C++
@@ -64,14 +65,23 @@ languages.
 The "executable" is the kernel or otherwise the freestanding application being loaded
 by the Limine boot protocol.
 
+The Limine boot protocol does not enforce any specific executable binary format to use,
+but ELF is strongly recommended.
+
+Only 64-bit, Little Endian machines are supported, or will be supported in the future.
+
 All pointers are 64-bit wide. All non-NULL pointers point to the object with the
-higher half direct map offset already added to them, unless otherwise noted.
+Higher Half Direct Map (HHDM) offset already added to them, unless otherwise noted.
 
 All responses and associated data structures are placed in bootloader-reclaimable
 memory regions.
 
-The calling convention matches the C ABI for the specific architecture
-(SysV for x86, AAPCS LP64 for aarch64, LP64 for riscv64).
+The ABI the Limine protocol uses and expects the application to comply to are as follows:
+  - SysV Itanium ABI for x86-64
+  - AAPCS LP64 for aarch64
+  - LP64 for riscv64
+  - LP64S for loongarch64
+All of these are with FPU/SIMD disabled (AKA sometimes also referred to as Soft-Float).
 
 ## Base Protocol Revisions
 
@@ -140,11 +150,12 @@ bootloader will scan for inside the loaded executable image to find requests.
 Request IDs are composed of 4 64-bit unsigned integers, but the first 2 are
 common to every request:
 ```c
-#define LIMINE_COMMON_MAGIC 0xc7b1dd30df4c8b88, 0x0a82e883a194f07b
+    #define LIMINE_COMMON_MAGIC 0xc7b1dd30df4c8b88, 0x0a82e883a194f07b
 ```
-Requests may be located anywhere inside the loaded executable image as long as they are
-8-byte aligned. There may only be 1 of the same request. The bootloader will refuse
-to boot an executable with multiple of the same request IDs.
+
+    Requests may be located anywhere inside the loaded executable image as long as they are
+    8-byte aligned. There may only be 1 of the same request. The bootloader will refuse
+    to boot an executable with multiple of the same request IDs.
 * `revision` - The revision of the request that the executable provides. This starts at 0 and is
 bumped whenever new members or functionality are added to the request structure.
 Bootloaders process requests in a backwards compatible manner, *always*. This
