@@ -4,7 +4,7 @@ The Limine boot protocol is a modern, portable, featureful, and extensible boot
 protocol.
 
 This file serves as the protocol's specification and as the official, centralised
-collection of features that the Limine boot protocol is comprised of.
+collection of [features](#features) that the Limine boot protocol is comprised of.
 Bootloaders may support extra unofficial features, but it is strongly recommended
 to avoid fragmentation and submit new features by opening a pull request to the
 [limine-protocol Codeberg repository](https://codeberg.org/Limine/limine-protocol).
@@ -21,7 +21,13 @@ languages.
 - [General Notes](#general-notes)
 - [Requests Delimiters](#requests-delimiters)
 - [Limine Requests Section](#limine-requests-section)
-- [Base Protocol Revisions](#base-protocol-revisions)
+- [Base Revisions](#base-revisions)
+- [Base Revision Changes Summary](#base-revision-changes-summary)
+  - [Base Revision 0](#base-revision-0)
+  - [Base Revision 1](#base-revision-1)
+  - [Base Revision 2](#base-revision-2)
+  - [Base Revision 3](#base-revision-3)
+  - [Base Revision 4](#base-revision-4)
 - [Features](#features)
 - [Memory Layout at Entry](#memory-layout-at-entry)
 - [Caching](#caching)
@@ -112,7 +118,7 @@ rather than them just being a hint.
 ## Limine Requests Section
 
 > [!WARNING]
-> This behaviour is deprecated and removed as of base protocol revision 1
+> This behaviour is deprecated and removed as of base revision 1
 
 For executables requesting deprecated base revision 0,
 if the executable file contains a `.limine_reqs` section, the bootloader
@@ -120,14 +126,15 @@ will, instead of scanning the executable for requests, fetch the requests
 from a NULL-terminated array of pointers to the provided requests, contained
 inside said section.
 
-## Base Protocol Revisions
+## Base Revisions
 
 The Limine boot protocol comes in several base revisions; so far, 5
 base revisions are specified: 0 through 4.
 
-Base protocol revisions change certain behaviours of the Limine boot protocol
+Base revisions change certain behaviours of the Limine boot protocol
 outside any specific feature. The specifics are going to be described as
-needed throughout this specification.
+needed throughout this specification, and are also mentioned in the
+[Base Revision Changes Summary](#base-revision-changes-summary) section.
 
 Base revision 0 through 3 are considered deprecated. Base revision 0 is the default base revision
 an executable is assumed to be requesting and complying to if no base revision tag
@@ -163,6 +170,71 @@ For any Limine-compliant bootloader supporting base revision 3 or greater, it is
 at least base revision 3, and it is mandatory for it to always set the 2nd component
 of the base revision tag to the base revision actually used to load the executable,
 regardless of whether it was the requested one or not.
+
+## Base Revision Changes Summary
+
+This section consolidates all changes introduced by each base revision for easy reference.
+
+### Base Revision 0
+
+This is the default revision if no base revision tag is provided.
+
+- Supports the `.limine_reqs` section for providing a list of requests.
+- Request delimiters (start/end markers) are treated as hints only.
+- Identity mapping of the first 4 GiB minus 0x1000 (from 0x1000 to 0xFFFFFFFF).
+- HHDM (Higher Half Direct Map) covers **all** memory map regions.
+- Memory between 0 and 0x1000 is **never** marked as usable.
+- **aarch64**: `TTBR0_EL1` points to bootloader-provided identity mapping page tables.
+
+### Base Revision 1
+
+**Changes from Revision 0**:
+- Removed support for `.limine_reqs` section.
+- Removed identity mapping of the first 4 GiB minus 0x1000 (from 0x1000 to 0xFFFFFFFF).
+- HHDM mappings no longer include memory map regions of types:
+  - Reserved
+  - Bad memory
+- **aarch64**: `TTBR0_EL1` is now **unspecified** and can be freely used by the executable.
+- Request delimiters remain hints only.
+
+### Base Revision 2
+
+**Changes from Revision 1**:
+- Request delimiters must now be **honored** if present (no longer optional hints).
+- All other behaviors remain the same as revision 1.
+
+### Base Revision 3
+
+**Changes from Revision 2**:
+- HHDM mapping becomes **restrictive** - only the following memory map regions are mapped:
+  - Usable
+  - Bootloader reclaimable
+  - Executable and modules
+  - Framebuffer
+- Removed unconditional direct map of the first 4 GiB.
+- Memory between 0 and 0x1000 **can now** be marked as usable.
+- RSDP address is returned as **physical** (base revision 3 **only**).
+- SMBIOS entry point addresses are returned as **physical**.
+- EFI system table address is returned as **physical**.
+- **Bootloader requirement**: Must support loading executables requesting higher unsupported revisions
+    with at least base revision 3.
+- **Bootloader requirement**: Must set the 2nd component of base revision tag to actual revision used.
+
+### Base Revision 4
+
+**Changes from Revision 3**:
+- HHDM additionally maps the following memory map regions:
+  - ACPI tables
+  - ACPI reclaimable
+  - ACPI NVS
+- Added new memory map type: `LIMINE_MEMMAP_ACPI_TABLES`.
+- Guaranteed that ACPI tables (RSDP, RSDT, XSDT, all tables pointed to by RSDT and XSDT, FACS,
+    X_FACS, DSDT, X_DSDT) are mapped within ACPI memory map regions.
+- RSDP address is returned as **virtual (HHDM)** again (physical only in revision 3).
+- **aarch64**:
+  - `MAIR_EL1.Attr0` is guaranteed to be `0xff` (Normal Write-Back RW-Allocate non-transient).
+  - `MAIR_EL1.Attr1` is guaranteed to be the framebuffer's correct caching type.
+  - All other `MAIR_EL1` entries are guaranteed unused unless specified by a request.
 
 ## Features
 
