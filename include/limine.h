@@ -31,14 +31,6 @@ extern "C" {
 #  define LIMINE_PTR(TYPE) TYPE
 #endif
 
-#ifndef LIMINE_API_REVISION
-#  define LIMINE_API_REVISION 0
-#endif
-
-#if LIMINE_API_REVISION > 4
-#  error "limine.h API revision unsupported"
-#endif
-
 #ifdef __GNUC__
 #  define LIMINE_DEPRECATED __attribute__((__deprecated__))
 #  define LIMINE_DEPRECATED_IGNORE_START \
@@ -86,11 +78,7 @@ struct limine_file {
     LIMINE_PTR(void *) address;
     uint64_t size;
     LIMINE_PTR(char *) path;
-#if LIMINE_API_REVISION >= 3
     LIMINE_PTR(char *) string;
-#else
-    LIMINE_PTR(char *) cmdline;
-#endif
     uint32_t media_type;
     uint32_t unused;
     uint32_t tftp_ip;
@@ -360,13 +348,8 @@ LIMINE_DEPRECATED_IGNORE_END
 
 /* MP */
 
-#if LIMINE_API_REVISION >= 1
-#  define LIMINE_MP_REQUEST { LIMINE_COMMON_MAGIC, 0x95a67b819a1b857e, 0xa0b61b723b6a73e0 }
-#  define LIMINE_MP(TEXT) limine_mp_##TEXT
-#else
-#  define LIMINE_SMP_REQUEST { LIMINE_COMMON_MAGIC, 0x95a67b819a1b857e, 0xa0b61b723b6a73e0 }
-#  define LIMINE_MP(TEXT) limine_smp_##TEXT
-#endif
+#define LIMINE_MP_REQUEST { LIMINE_COMMON_MAGIC, 0x95a67b819a1b857e, 0xa0b61b723b6a73e0 }
+#define LIMINE_MP(TEXT) limine_mp_##TEXT
 
 struct LIMINE_MP(info);
 
@@ -374,11 +357,7 @@ typedef void (*limine_goto_address)(struct LIMINE_MP(info) *);
 
 #if defined (__x86_64__) || defined (__i386__)
 
-#if LIMINE_API_REVISION >= 1
-#  define LIMINE_MP_X2APIC (1 << 0)
-#else
-#  define LIMINE_SMP_X2APIC (1 << 0)
-#endif
+#define LIMINE_MP_X2APIC (1 << 0)
 
 struct LIMINE_MP(info) {
     uint32_t processor_id;
@@ -465,11 +444,7 @@ struct LIMINE_MP(request) {
 #define LIMINE_MEMMAP_ACPI_NVS               3
 #define LIMINE_MEMMAP_BAD_MEMORY             4
 #define LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE 5
-#if LIMINE_API_REVISION >= 2
-#  define LIMINE_MEMMAP_EXECUTABLE_AND_MODULES 6
-#else
-#  define LIMINE_MEMMAP_KERNEL_AND_MODULES 6
-#endif
+#define LIMINE_MEMMAP_EXECUTABLE_AND_MODULES 6
 #define LIMINE_MEMMAP_FRAMEBUFFER            7
 #define LIMINE_MEMMAP_ACPI_TABLES            8
 
@@ -510,37 +485,17 @@ struct limine_entry_point_request {
 
 /* Executable File */
 
-#if LIMINE_API_REVISION >= 2
-#  define LIMINE_EXECUTABLE_FILE_REQUEST { LIMINE_COMMON_MAGIC, 0xad97e90e83f1ed67, 0x31eb5d1c5ff23b69 }
-#else
-#  define LIMINE_KERNEL_FILE_REQUEST { LIMINE_COMMON_MAGIC, 0xad97e90e83f1ed67, 0x31eb5d1c5ff23b69 }
-#endif
+#define LIMINE_EXECUTABLE_FILE_REQUEST { LIMINE_COMMON_MAGIC, 0xad97e90e83f1ed67, 0x31eb5d1c5ff23b69 }
 
-#if LIMINE_API_REVISION >= 2
 struct limine_executable_file_response {
-#else
-struct limine_kernel_file_response {
-#endif
     uint64_t revision;
-#if LIMINE_API_REVISION >= 2
     LIMINE_PTR(struct limine_file *) executable_file;
-#else
-    LIMINE_PTR(struct limine_file *) kernel_file;
-#endif
 };
 
-#if LIMINE_API_REVISION >= 2
 struct limine_executable_file_request {
-#else
-struct limine_kernel_file_request {
-#endif
     uint64_t id[4];
     uint64_t revision;
-#if LIMINE_API_REVISION >= 2
     LIMINE_PTR(struct limine_executable_file_response *) response;
-#else
-    LIMINE_PTR(struct limine_kernel_file_response *) response;
-#endif
 };
 
 /* Module */
@@ -552,11 +507,7 @@ struct limine_kernel_file_request {
 
 struct limine_internal_module {
     LIMINE_PTR(const char *) path;
-#if LIMINE_API_REVISION >= 3
     LIMINE_PTR(const char *) string;
-#else
-    LIMINE_PTR(const char *) cmdline;
-#endif
     uint64_t flags;
 };
 
@@ -582,11 +533,7 @@ struct limine_module_request {
 
 struct limine_rsdp_response {
     uint64_t revision;
-#if LIMINE_API_REVISION >= 1 && LIMINE_API_REVISION <= 3
-    uint64_t address;
-#else
     LIMINE_PTR(void *) address;
-#endif
 };
 
 struct limine_rsdp_request {
@@ -601,13 +548,8 @@ struct limine_rsdp_request {
 
 struct limine_smbios_response {
     uint64_t revision;
-#if LIMINE_API_REVISION >= 1
     uint64_t entry_32;
     uint64_t entry_64;
-#else
-    LIMINE_PTR(void *) entry_32;
-    LIMINE_PTR(void *) entry_64;
-#endif
 };
 
 struct limine_smbios_request {
@@ -622,11 +564,7 @@ struct limine_smbios_request {
 
 struct limine_efi_system_table_response {
     uint64_t revision;
-#if LIMINE_API_REVISION >= 1
     uint64_t address;
-#else
-    LIMINE_PTR(void *) address;
-#endif
 };
 
 struct limine_efi_system_table_request {
@@ -655,69 +593,33 @@ struct limine_efi_memmap_request {
 
 /* Date at boot */
 
-#if LIMINE_API_REVISION >= 3
-#  define LIMINE_DATE_AT_BOOT_REQUEST { LIMINE_COMMON_MAGIC, 0x502746e184c088aa, 0xfbc5ec83e6327893 }
-#else
-#  define LIMINE_BOOT_TIME_REQUEST { LIMINE_COMMON_MAGIC, 0x502746e184c088aa, 0xfbc5ec83e6327893 }
-#endif
+#define LIMINE_DATE_AT_BOOT_REQUEST { LIMINE_COMMON_MAGIC, 0x502746e184c088aa, 0xfbc5ec83e6327893 }
 
-#if LIMINE_API_REVISION >= 3
 struct limine_date_at_boot_response {
-#else
-struct limine_boot_time_response {
-#endif
     uint64_t revision;
-#if LIMINE_API_REVISION >= 3
     int64_t timestamp;
-#else
-    int64_t boot_time;
-#endif
 };
 
-#if LIMINE_API_REVISION >= 3
 struct limine_date_at_boot_request {
-#else
-struct limine_boot_time_request {
-#endif
     uint64_t id[4];
     uint64_t revision;
-#if LIMINE_API_REVISION >= 3
     LIMINE_PTR(struct limine_date_at_boot_response *) response;
-#else
-    LIMINE_PTR(struct limine_boot_time_response *) response;
-#endif
 };
 
 /* Executable address */
 
-#if LIMINE_API_REVISION >= 2
-#  define LIMINE_EXECUTABLE_ADDRESS_REQUEST { LIMINE_COMMON_MAGIC, 0x71ba76863cc55f63, 0xb2644a48c516a487 }
-#else
-#  define LIMINE_KERNEL_ADDRESS_REQUEST { LIMINE_COMMON_MAGIC, 0x71ba76863cc55f63, 0xb2644a48c516a487 }
-#endif
+#define LIMINE_EXECUTABLE_ADDRESS_REQUEST { LIMINE_COMMON_MAGIC, 0x71ba76863cc55f63, 0xb2644a48c516a487 }
 
-#if LIMINE_API_REVISION >= 2
 struct limine_executable_address_response {
-#else
-struct limine_kernel_address_response {
-#endif
     uint64_t revision;
     uint64_t physical_base;
     uint64_t virtual_base;
 };
 
-#if LIMINE_API_REVISION >= 2
 struct limine_executable_address_request {
-#else
-struct limine_kernel_address_request {
-#endif
     uint64_t id[4];
     uint64_t revision;
-#if LIMINE_API_REVISION >= 2
     LIMINE_PTR(struct limine_executable_address_response *) response;
-#else
-    LIMINE_PTR(struct limine_kernel_address_response *) response;
-#endif
 };
 
 /* Device Tree Blob */
