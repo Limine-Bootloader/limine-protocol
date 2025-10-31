@@ -224,66 +224,6 @@ struct limine_framebuffer_request {
     LIMINE_PTR(struct limine_framebuffer_response *) response;
 };
 
-/* Terminal */
-
-#define LIMINE_TERMINAL_REQUEST { LIMINE_COMMON_MAGIC, 0xc8ac59310c2b0844, 0xa68d0c7265d38878 }
-
-#define LIMINE_TERMINAL_CB_DEC 10
-#define LIMINE_TERMINAL_CB_BELL 20
-#define LIMINE_TERMINAL_CB_PRIVATE_ID 30
-#define LIMINE_TERMINAL_CB_STATUS_REPORT 40
-#define LIMINE_TERMINAL_CB_POS_REPORT 50
-#define LIMINE_TERMINAL_CB_KBD_LEDS 60
-#define LIMINE_TERMINAL_CB_MODE 70
-#define LIMINE_TERMINAL_CB_LINUX 80
-
-#define LIMINE_TERMINAL_CTX_SIZE ((uint64_t)(-1))
-#define LIMINE_TERMINAL_CTX_SAVE ((uint64_t)(-2))
-#define LIMINE_TERMINAL_CTX_RESTORE ((uint64_t)(-3))
-#define LIMINE_TERMINAL_FULL_REFRESH ((uint64_t)(-4))
-
-/* Response revision 1 */
-#define LIMINE_TERMINAL_OOB_OUTPUT_GET ((uint64_t)(-10))
-#define LIMINE_TERMINAL_OOB_OUTPUT_SET ((uint64_t)(-11))
-
-#define LIMINE_TERMINAL_OOB_OUTPUT_OCRNL (1 << 0)
-#define LIMINE_TERMINAL_OOB_OUTPUT_OFDEL (1 << 1)
-#define LIMINE_TERMINAL_OOB_OUTPUT_OFILL (1 << 2)
-#define LIMINE_TERMINAL_OOB_OUTPUT_OLCUC (1 << 3)
-#define LIMINE_TERMINAL_OOB_OUTPUT_ONLCR (1 << 4)
-#define LIMINE_TERMINAL_OOB_OUTPUT_ONLRET (1 << 5)
-#define LIMINE_TERMINAL_OOB_OUTPUT_ONOCR (1 << 6)
-#define LIMINE_TERMINAL_OOB_OUTPUT_OPOST (1 << 7)
-
-LIMINE_DEPRECATED_IGNORE_START
-
-struct LIMINE_DEPRECATED limine_terminal;
-
-typedef void (*limine_terminal_write)(struct limine_terminal *, const char *, uint64_t);
-typedef void (*limine_terminal_callback)(struct limine_terminal *, uint64_t, uint64_t, uint64_t, uint64_t);
-
-struct LIMINE_DEPRECATED limine_terminal {
-    uint64_t columns;
-    uint64_t rows;
-    LIMINE_PTR(struct limine_framebuffer *) framebuffer;
-};
-
-struct LIMINE_DEPRECATED limine_terminal_response {
-    uint64_t revision;
-    uint64_t terminal_count;
-    LIMINE_PTR(struct limine_terminal **) terminals;
-    LIMINE_PTR(limine_terminal_write) write;
-};
-
-struct LIMINE_DEPRECATED limine_terminal_request {
-    uint64_t id[4];
-    uint64_t revision;
-    LIMINE_PTR(struct limine_terminal_response *) response;
-    LIMINE_PTR(limine_terminal_callback) callback;
-};
-
-LIMINE_DEPRECATED_IGNORE_END
-
 /* Paging mode */
 
 #define LIMINE_PAGING_MODE_REQUEST { LIMINE_COMMON_MAGIC, 0x95c1a0edab0944cb, 0xa4e5cb3842f7488a }
@@ -325,24 +265,6 @@ struct limine_paging_mode_request {
     uint64_t max_mode;
     uint64_t min_mode;
 };
-
-/* 5-level paging */
-
-#define LIMINE_5_LEVEL_PAGING_REQUEST { LIMINE_COMMON_MAGIC, 0x94469551da9b3192, 0xebe5e86db7382888 }
-
-LIMINE_DEPRECATED_IGNORE_START
-
-struct LIMINE_DEPRECATED limine_5_level_paging_response {
-    uint64_t revision;
-};
-
-struct LIMINE_DEPRECATED limine_5_level_paging_request {
-    uint64_t id[4];
-    uint64_t revision;
-    LIMINE_PTR(struct limine_5_level_paging_response *) response;
-};
-
-LIMINE_DEPRECATED_IGNORE_END
 
 /* MP */
 
