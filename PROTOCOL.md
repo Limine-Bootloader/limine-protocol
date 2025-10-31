@@ -74,15 +74,14 @@ by the Limine boot protocol.
 The Limine boot protocol does not enforce any specific executable binary format to use,
 but ELF is strongly recommended.
 
-Only 64-bit, Little Endian machines are supported, or will be supported in the future.
+Only 64-bit, Little Endian machines are or will be supported.
 
 All pointers are 64-bit wide. All non-NULL pointers point to the object with the
-Higher Half Direct Map (HHDM) offset already added to them, unless otherwise noted.
+[Higher Half Direct Map](#hhdm-higher-half-direct-map-feature) (HHDM) offset already added to them, unless otherwise noted.
 
-All responses and associated data structures are placed in bootloader-reclaimable
-memory regions.
+All responses and associated data structures are placed in [bootloader-reclaimable memory](#memory-map-feature) regions.
 
-The ABI the Limine protocol uses and expects the application to comply to are as follows:
+The ABI the Limine protocol uses and expects the application to comply with are as follows:
   - SysV Itanium ABI for x86-64
   - AAPCS LP64 for aarch64
   - LP64 for riscv64
@@ -108,19 +107,19 @@ marker found.
     uint64_t limine_requests_end_marker[2] = { 0xadc0e0531bb10d03, 0x9572709f31764c62 };
 ```
 
-For base revisions 0 and 1, the requests delimiters are *hints*. The bootloader can still search for
+For [base revisions](#base-revisions) 0 and 1, the requests delimiters are *hints*. The bootloader can still search for
 requests and base revision tags outside the delimited area if it doesn't support the hints.
 
-Base revision 2's sole difference compared to base revision 1 is that support for
+[Base revision 2](#base-revision-2)'s sole difference compared to [base revision 1](#base-revision-1) is that support for
 request delimiters has to be provided and the delimiters must be honoured, if present,
 rather than them just being a hint.
 
 ## Limine Requests Section
 
 > [!WARNING]
-> This behaviour is deprecated and removed as of base revision 1
+> This behaviour is deprecated and removed as of [base revision 1](#base-revision-1)
 
-For executables requesting deprecated base revision 0,
+For executables requesting deprecated [base revision 0](#base-revision-0),
 if the executable file contains a `.limine_reqs` section, the bootloader
 will, instead of scanning the executable for requests, fetch the requests
 from a NULL-terminated array of pointers to the provided requests, contained
@@ -136,7 +135,7 @@ outside any specific feature. The specifics are going to be described as
 needed throughout this specification, and are also mentioned in the
 [Base Revision Changes Summary](#base-revision-changes-summary) section.
 
-Base revision 0 through 3 are considered deprecated. Base revision 0 is the default base revision
+Base revision 0 through 3 are considered deprecated. [Base revision 0](#base-revision-0) is the default base revision
 an executable is assumed to be requesting and complying to if no base revision tag
 is provided by the executable, for backwards compatibility.
 
@@ -165,7 +164,7 @@ On the other hand, if the executable's requested base revision is supported,
 > bootloader does not yet support the executable's requested base revision,
 > it is up to the executable itself to fail (or handle the condition otherwise).
 
-For any Limine-compliant bootloader supporting base revision 3 or greater, it is
+For any Limine-compliant bootloader supporting [base revision 3](#base-revision-3) or greater, it is
 *mandatory* to load executables requesting higher unsupported base revisions with
 at least base revision 3, and it is mandatory for it to always set the 2nd component
 of the base revision tag to the base revision actually used to load the executable,
@@ -182,7 +181,7 @@ This is the default revision if no base revision tag is provided.
 - Supports the `.limine_reqs` section for providing a list of requests.
 - Request delimiters (start/end markers) are treated as hints only.
 - Identity mapping (starting at offset 0x1000) available.
-- HHDM (Higher Half Direct Map) covers **all** memory map regions.
+- [HHDM](#hhdm-higher-half-direct-map-feature) (Higher Half Direct Map) covers **all** memory map regions.
 - Memory between 0 and 0x1000 is **never** marked as usable.
 - **aarch64**: `TTBR0_EL1` points to bootloader-provided identity mapping page tables.
 
@@ -191,7 +190,7 @@ This is the default revision if no base revision tag is provided.
 **Changes from Revision 0**:
 - Removed support for `.limine_reqs` section.
 - Removed identity mapping.
-- HHDM mappings no longer include memory map regions of types:
+- [HHDM](#hhdm-higher-half-direct-map-feature) mappings no longer include memory map regions of types:
   - Reserved
   - Bad memory
 - **aarch64**: `TTBR0_EL1` is now **unspecified** and can be freely used by the executable.
@@ -200,22 +199,22 @@ This is the default revision if no base revision tag is provided.
 ### Base Revision 2
 
 **Changes from Revision 1**:
-- Request delimiters must now be **honored** if present (no longer optional hints).
+- Request delimiters must now be **honoured** if present (no longer optional hints).
 - All other behaviors remain the same as revision 1.
 
 ### Base Revision 3
 
 **Changes from Revision 2**:
-- HHDM mapping becomes **restrictive** - only the following memory map regions are mapped:
+- [HHDM](#hhdm-higher-half-direct-map-feature) mapping becomes **restrictive** - only the following memory map regions are mapped:
   - Usable
   - Bootloader reclaimable
   - Executable and modules
   - Framebuffer
 - Removed unconditional direct map of the first 4 GiB.
 - Memory between 0 and 0x1000 **can now** be marked as usable.
-- RSDP address is returned as **physical** (base revision 3 **only**).
-- SMBIOS entry point addresses are returned as **physical**.
-- EFI system table address is returned as **physical**.
+- [RSDP](#rsdp-feature) address is returned as **physical** (base revision 3 **only**).
+- [SMBIOS](#smbios-feature) entry point addresses are returned as **physical**.
+- [EFI system table](#efi-system-table-feature) address is returned as **physical**.
 - **Bootloader requirement**: Must support loading executables requesting higher unsupported revisions
     with at least base revision 3.
 - **Bootloader requirement**: Must set the 2nd component of base revision tag to actual revision used.
@@ -223,14 +222,15 @@ This is the default revision if no base revision tag is provided.
 ### Base Revision 4
 
 **Changes from Revision 3**:
-- HHDM additionally maps the following memory map regions:
+- [HHDM](#hhdm-higher-half-direct-map-feature) additionally maps the following memory map regions:
   - ACPI tables
   - ACPI reclaimable
   - ACPI NVS
 - Added new memory map type: `LIMINE_MEMMAP_ACPI_TABLES`.
 - Guaranteed that ACPI tables (RSDP, RSDT, XSDT, all tables pointed to by RSDT and XSDT, FACS,
     X_FACS, DSDT, X_DSDT) are mapped within ACPI memory map regions.
-- RSDP address is returned as **virtual (HHDM)** again (physical only in revision 3).
+- [RSDP](#rsdp-feature) address is returned as **virtual ([HHDM](#hhdm-higher-half-direct-map-feature))**
+    again (physical only in [base revision 3](#base-revision-3)).
 - **aarch64**:
   - `MAIR_EL1.Attr0` is guaranteed to be `0xff` (Normal Write-Back RW-Allocate non-transient).
   - `MAIR_EL1.Attr1` is guaranteed to be the framebuffer's correct caching type.
@@ -267,35 +267,35 @@ Alongside the loaded executable, the bootloader will set up memory mappings as s
 Where "HHDM start" is returned by the [Higher Half Direct Map feature](#hhdm-higher-half-direct-map-feature).
 These mappings are supervisor, read, write, execute (-rwx).
 
-For base revision 0, the above-4GiB identity and HHDM mappings cover any memory
+For [base revision 0](#base-revision-0), the above-4GiB identity and HHDM mappings cover any memory
 map region.
 
-For base revisions 1 and 2, the above-4GiB HHDM mappings do not comprise memory map regions
+For [base revisions 1](#base-revision-1) and [2](#base-revision-2), the above-4GiB HHDM mappings do not comprise memory map regions
 of types:
  - Reserved
  - Bad memory
 
-For base revision 3 or greater, the only memory map regions mapped to the HHDM are:
+For [base revision 3](#base-revision-3) or greater, the only memory map regions mapped to the HHDM are:
  - Usable
  - Bootloader reclaimable
  - Executable and modules
  - Framebuffer
 
-For base revision 3 or greater, the unconditional direct map of the first 4GiB is
+For [base revision 3](#base-revision-3) or greater, the unconditional direct map of the first 4GiB is
 dropped, and only memory map regions of complying types are mapped in.
 
-For base revision 4 or greater, the following regions are also mapped in addition
-to those mapped by base revision 3:
+For [base revision 4](#base-revision-4) or greater, the following regions are also mapped in addition
+to those mapped by [base revision 3](#base-revision-3):
  - ACPI tables
  - ACPI reclaimable
  - ACPI NVS
 
-For base revision 4 or greater, ACPI tables (that being RSDP, RSDT, XSDT, all
+For [base revision 4](#base-revision-4) or greater, ACPI tables (that being RSDP, RSDT, XSDT, all
 tables pointed to by RSDT and XSDT, FACS, X_FACS, DSDT, X_DSDT - if present and
 possible to map) are guaranteed to be mapped within any of the 3 ACPI memory map
 regions.
 
-The bootloader page tables are in bootloader-reclaimable memory (see the
+The bootloader page tables are in [bootloader-reclaimable memory](#memory-map-feature) (see the
 [Memory Map feature](#memory-map-feature)), and their specific layout is undefined as long as they provide
 the above memory mappings.
 
@@ -341,7 +341,7 @@ framebuffer on the platform.
 The `MAIR_EL1` register will at least contain entries for the above-mentioned
 caching modes, in an unspecified order.
 
-For base revision 4 and greater, `MAIR_EL1.Attr0` is guaranteed to be `0xff` (AKA Normal
+For [base revision 4](#base-revision-4) and greater, `MAIR_EL1.Attr0` is guaranteed to be `0xff` (AKA Normal
 Write-Back RW-Allocate non-transient caching mode), `MAIR_EL1.Attr1` is guaranteed to
 be the entry used to map the framebuffer, of the correct caching type for it, and all
 other entries in `MAIR_EL1` are guaranteed unused unless otherwise specified by a request.
@@ -379,7 +379,7 @@ of `rip` is going to be taken from there.
 At entry all segment registers are loaded as 64 bit code/data segments, limits
 and bases are ignored since this is 64-bit mode.
 
-The GDT register is loaded to point to a GDT, in bootloader-reclaimable memory,
+The GDT register is loaded to point to a GDT, in [bootloader-reclaimable memory](#memory-map-feature),
 with at least the following entries, starting at offset 0:
 
   - Null descriptor
@@ -407,7 +407,7 @@ Legacy PIC (if available) and IO APIC IRQs (only those with delivery mode fixed
 
 If booted by EFI, boot services are exited.
 
-`rsp` is set to point to a stack, in bootloader-reclaimable memory, which is
+`rsp` is set to point to a stack, in [bootloader-reclaimable memory](#memory-map-feature), which is
 at least 64KiB (65536 bytes) in size, or the size specified in the
 [Stack Size feature](#stack-size-feature). An invalid return address of 0 is pushed
 to the stack before jumping to the executable.
@@ -423,7 +423,7 @@ the value of `PC` is going to be taken from there.
 The contents of the `VBAR_EL1` register are undefined, and the executable must load
 its own.
 
-The `MAIR_EL1` register contents are described above, in the caching section.
+The `MAIR_EL1` register contents are described above, in the [caching section](#caching).
 
 All interrupts are masked (`PSTATE.{D, A, I, F}` are set to 1).
 
@@ -448,13 +448,13 @@ The used translation granule size for both `TTBR0_EL1` and `TTBR1_EL1` is 4KiB.
 paging. Additionally, for 5-level paging, `TCR_EL1.DS` is set to 1.
 
 `TTBR1_EL1` points to the bootloader-provided higher half page tables.
-For base revision 0, `TTBR0_EL1` points to the bootloader-provided identity
+For [base revision 0](#base-revision-0), `TTBR0_EL1` points to the bootloader-provided identity
 mapping page tables, and is unspecified for all other base revisions and can
 thus be freely used by the executable.
 
 If booted by EFI, boot services are exited.
 
-`SP` is set to point to a stack, in bootloader-reclaimable memory, which is
+`SP` is set to point to a stack, in [bootloader-reclaimable memory](#memory-map-feature), which is
 at least 64KiB (65536 bytes) in size, or the size specified in the
 [Stack Size feature](#stack-size-feature).
 
@@ -471,7 +471,7 @@ value of `pc` is going to be taken from there.
 
 `x1`(`ra`) is set to 0, the executable must not return from the entry point.
 
-`x2`(`sp`) is set to point to a stack, in bootloader-reclaimable memory, which is
+`x2`(`sp`) is set to point to a stack, in [bootloader-reclaimable memory](#memory-map-feature), which is
 at least 64KiB (65536 bytes) in size, or the size specified in the
 [Stack Size feature](#stack-size-feature).
 
@@ -499,7 +499,7 @@ value of `$pc` is going to be taken from there.
 
 `$r1`(`$ra`) is set to 0, the executable must not return from the entry point.
 
-`$r3`(`$sp`) is set to point to a stack, in bootloader-reclaimable memory, which is
+`$r3`(`$sp`) is set to point to a stack, in [bootloader-reclaimable memory](#memory-map-feature), which is
 at least 64KiB (65536 bytes) in size, or the size specified in the
 [Stack Size feature](#stack-size-feature).
 
@@ -626,7 +626,7 @@ struct limine_executable_cmdline_response {
 
 `cmdline` is a 0-terminated ASCII string containing the command line associated with the
 booted executable. This is equivalent to the `string` member of the `executable_file` structure of the
-Executable File feature.
+[Executable File feature](#executable-file-feature).
 
 ### Firmware Type Feature
 
@@ -956,7 +956,7 @@ struct limine_mp_info {
 * `processor_id` - ACPI Processor UID as specified by the MADT
 * `lapic_id` - Local APIC ID of the processor as specified by the MADT
 * `goto_address` - An atomic write to this field causes the parked CPU to
-jump to the written address, on a 64KiB (or Stack Size Request size) stack. A pointer to the
+jump to the written address, on a 64KiB (or [Stack Size feature](#stack-size-feature) size) stack. A pointer to the
 `struct limine_mp_info` structure of the CPU is passed in `RDI`. Other than
 that, the CPU state will be the same as described for the bootstrap
 processor. This field is unused for the structure describing the bootstrap
@@ -1006,7 +1006,7 @@ struct limine_mp_info {
 * `processor_id` - ACPI Processor UID as specified by the MADT (always 0 on non-ACPI systems)
 * `mpidr` - MPIDR of the processor as specified by the MADT or device tree
 * `goto_address` - An atomic write to this field causes the parked CPU to
-jump to the written address, on a 64KiB (or Stack Size Request size) stack. A pointer to the
+jump to the written address, on a 64KiB (or [Stack Size feature](#stack-size-feature) size) stack. A pointer to the
 `struct limine_mp_info` structure of the CPU is passed in `X0`. Other than
 that, the CPU state will be the same as described for the bootstrap
 processor. This field is unused for the structure describing the bootstrap
@@ -1054,7 +1054,7 @@ struct limine_mp_info {
 * `processor_id` - ACPI Processor UID as specified by the MADT (always 0 on non-ACPI systems).
 * `hartid` - Hart ID of the processor as specified by the MADT or Device Tree.
 * `goto_address` - An atomic write to this field causes the parked CPU to
-jump to the written address, on a 64KiB (or Stack Size Request size) stack. A pointer to the
+jump to the written address, on a 64KiB (or [Stack Size feature](#stack-size-feature) size) stack. A pointer to the
 `struct limine_mp_info` structure of the CPU is passed in `x10`(`a0`). Other than
 that, the CPU state will be the same as described for the bootstrap
 processor. This field is unused for the structure describing the bootstrap
@@ -1087,8 +1087,8 @@ struct limine_riscv_bsp_hartid_response {
 
 * `bsp_hartid` - The Hart ID of the boot processor.
 > [!NOTE]
-> This request contains the same information as `limine_mp_response.bsp_hartid`,
-> but doesn't boot up other APs.
+> This request contains the same information as `limine_mp_response.bsp_hartid` from the
+> [MP feature](#mp-multiprocessor-feature), but doesn't boot up other APs.
 
 ### Memory Map Feature
 
@@ -1166,20 +1166,20 @@ deciding to reclaim these memory regions for itself.
 
 * `LIMINE_MEMMAP_EXECUTABLE_AND_MODULES` entries are meant to have an illustrative purpose
 only, and are not authoritative sources to be used as a means to find the addresses of the
-executable or modules. One must use the specific Limine features (executable address and
-module features) to do that.
+executable or modules. One must use the specific Limine features ([Executable Address](#executable-address-feature) and
+[Module](#module-feature) features) to do that.
 
 * `LIMINE_MEMMAP_FRAMEBUFFER` entries represent regions of the address space containing
 memory-mapped framebuffers. These entries exist for illustrative purposes only, and are
-not to be used to acquire the address of any framebuffer. One must use the framebuffer
-feature for that.
+not to be used to acquire the address of any framebuffer. One must use the [Framebuffer
+feature](#framebuffer-feature) for that.
 
-* `LIMINE_MEMMAP_ACPI_TABLES` (base revision 4 or greater) entries represent regions
-of the address space containing the ACPI tables as described by the Entry Memory Layout
-paragraph, if the firmware did not already map them within either an ACPI reclaimable
+* `LIMINE_MEMMAP_ACPI_TABLES` ([base revision 4](#base-revision-4) or greater) entries represent regions
+of the address space containing the ACPI tables as described by the [Memory Layout at Entry](#memory-layout-at-entry)
+section, if the firmware did not already map them within either an ACPI reclaimable
 or an ACPI NVS region.
 
-For base revisions <= 2, memory between 0 and 0x1000 is never marked as usable memory.
+For [base revisions](#base-revisions) <= 2, memory between 0 and 0x1000 is never marked as usable memory.
 
 The entries are guaranteed to be sorted by base address, lowest to highest.
 
@@ -1256,7 +1256,7 @@ struct limine_executable_file_response {
 * `executable_file` - Pointer to the `struct limine_file` structure (see
 [File Structure](#file-structure) below).
 for the executable file. The `string` member is equivalent to the `cmdline` value as reported by
-the Executable Command Line feature.
+the [Executable Command Line feature](#executable-command-line-feature).
 
 ### Module Feature
 
@@ -1347,7 +1347,7 @@ struct limine_rsdp_response {
 };
 ```
 
-* `address` - Address of the RSDP table. Physical for base revision 3 **only**.
+* `address` - Address of the RSDP table. Physical for [base revision 3](#base-revision-3) **only**.
 
 ### SMBIOS Feature
 
@@ -1374,8 +1374,8 @@ struct limine_smbios_response {
 };
 ```
 
-* `entry_32` - Address of the 32-bit SMBIOS entry point. NULL if not present. Physical for base revision >= 3.
-* `entry_64` - Address of the 64-bit SMBIOS entry point. NULL if not present. Physical for base revision >= 3.
+* `entry_32` - Address of the 32-bit SMBIOS entry point. NULL if not present. Physical for [base revision](#base-revisions) >= 3.
+* `entry_64` - Address of the 64-bit SMBIOS entry point. NULL if not present. Physical for [base revision](#base-revisions) >= 3.
 
 ### EFI System Table Feature
 
@@ -1401,7 +1401,7 @@ struct limine_efi_system_table_response {
 };
 ```
 
-* `address` - Address of EFI system table. Physical for base revision >= 3.
+* `address` - Address of EFI system table. Physical for [base revision](#base-revisions) >= 3.
 
 ### EFI Memory Map Feature
 
@@ -1430,14 +1430,14 @@ struct limine_efi_memmap_response {
 };
 ```
 
-* `memmap` - Address (HHDM, in bootloader reclaimable memory) of the EFI memory map.
+* `memmap` - Address (HHDM, in [bootloader reclaimable memory](#memory-map-feature)) of the EFI memory map.
 * `memmap_size` - Size in bytes of the EFI memory map.
 * `desc_size` - EFI memory map descriptor size in bytes.
 * `desc_version` - Version of EFI memory map descriptors.
 
 > [!NOTE]
 > This feature provides data suitable for use with RT->SetVirtualAddressMap(), provided
-> HHDM offset is subtracted from `memmap`.
+> [HHDM](#hhdm-higher-half-direct-map-feature) offset is subtracted from `memmap`.
 
 ### Date at Boot Feature
 
@@ -1517,7 +1517,7 @@ struct limine_dtb_response {
 };
 ```
 
-* `dtb_ptr` - Virtual (HHDM) pointer to the device tree blob, in bootloader reclaimable memory.
+* `dtb_ptr` - Virtual (HHDM) pointer to the device tree blob, in [bootloader reclaimable memory](#memory-map-feature).
 
 > [!NOTE]
 > If the DTB cannot be found, the response will *not* be generated.
@@ -1528,7 +1528,7 @@ struct limine_dtb_response {
 
 > [!NOTE]
 > If the DTB contained `memory@...` nodes, they will get removed.
-> Executables may not rely on these nodes and should use the Memory Map feature instead.
+> Executables may not rely on these nodes and should use the [Memory Map feature](#memory-map-feature) instead.
 
 ### Bootloader Performance Feature
 
