@@ -181,7 +181,7 @@ This is the default revision if no base revision tag is provided.
 
 - Supports the `.limine_reqs` section for providing a list of requests.
 - Request delimiters (start/end markers) are treated as hints only.
-- Identity mapping of the first 4 GiB minus 0x1000 (from 0x1000 to 0xFFFFFFFF).
+- Identity mapping (starting at offset 0x1000) available.
 - HHDM (Higher Half Direct Map) covers **all** memory map regions.
 - Memory between 0 and 0x1000 is **never** marked as usable.
 - **aarch64**: `TTBR0_EL1` points to bootloader-provided identity mapping page tables.
@@ -190,7 +190,7 @@ This is the default revision if no base revision tag is provided.
 
 **Changes from Revision 0**:
 - Removed support for `.limine_reqs` section.
-- Removed identity mapping of the first 4 GiB minus 0x1000 (from 0x1000 to 0xFFFFFFFF).
+- Removed identity mapping.
 - HHDM mappings no longer include memory map regions of types:
   - Reserved
   - Bad memory
