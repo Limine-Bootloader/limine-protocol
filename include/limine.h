@@ -127,9 +127,7 @@ struct limine_executable_cmdline_request {
 
 #define LIMINE_FIRMWARE_TYPE_X86BIOS 0
 #define LIMINE_FIRMWARE_TYPE_EFI32 1
-#  define LIMINE_FIRMWARE_TYPE_UEFI32 1
 #define LIMINE_FIRMWARE_TYPE_EFI64 2
-#  define LIMINE_FIRMWARE_TYPE_UEFI64 2
 #define LIMINE_FIRMWARE_TYPE_SBI 3
 
 struct limine_firmware_type_response {
@@ -349,17 +347,16 @@ LIMINE_DEPRECATED_IGNORE_END
 /* MP */
 
 #define LIMINE_MP_REQUEST { LIMINE_COMMON_MAGIC, 0x95a67b819a1b857e, 0xa0b61b723b6a73e0 }
-#define LIMINE_MP(TEXT) limine_mp_##TEXT
 
-struct LIMINE_MP(info);
+struct limine_mp_info;
 
-typedef void (*limine_goto_address)(struct LIMINE_MP(info) *);
+typedef void (*limine_goto_address)(struct limine_mp_info *);
 
 #if defined (__x86_64__) || defined (__i386__)
 
 #define LIMINE_MP_X2APIC (1 << 0)
 
-struct LIMINE_MP(info) {
+struct limine_mp_info {
     uint32_t processor_id;
     uint32_t lapic_id;
     uint64_t reserved;
@@ -367,17 +364,17 @@ struct LIMINE_MP(info) {
     uint64_t extra_argument;
 };
 
-struct LIMINE_MP(response) {
+struct limine_mp_response {
     uint64_t revision;
     uint32_t flags;
     uint32_t bsp_lapic_id;
     uint64_t cpu_count;
-    LIMINE_PTR(struct LIMINE_MP(info) **) cpus;
+    LIMINE_PTR(struct limine_mp_info **) cpus;
 };
 
 #elif defined (__aarch64__)
 
-struct LIMINE_MP(info) {
+struct limine_mp_info {
     uint32_t processor_id;
     uint32_t reserved1;
     uint64_t mpidr;
@@ -386,17 +383,17 @@ struct LIMINE_MP(info) {
     uint64_t extra_argument;
 };
 
-struct LIMINE_MP(response) {
+struct limine_mp_response {
     uint64_t revision;
     uint64_t flags;
     uint64_t bsp_mpidr;
     uint64_t cpu_count;
-    LIMINE_PTR(struct LIMINE_MP(info) **) cpus;
+    LIMINE_PTR(struct limine_mp_info **) cpus;
 };
 
 #elif defined (__riscv) && (__riscv_xlen == 64)
 
-struct LIMINE_MP(info) {
+struct limine_mp_info {
     uint64_t processor_id;
     uint64_t hartid;
     uint64_t reserved;
@@ -404,33 +401,33 @@ struct LIMINE_MP(info) {
     uint64_t extra_argument;
 };
 
-struct LIMINE_MP(response) {
+struct limine_mp_response {
     uint64_t revision;
     uint64_t flags;
     uint64_t bsp_hartid;
     uint64_t cpu_count;
-    LIMINE_PTR(struct LIMINE_MP(info) **) cpus;
+    LIMINE_PTR(struct limine_mp_info **) cpus;
 };
 
 #elif defined (__loongarch__) && (__loongarch_grlen == 64)
 
-struct LIMINE_MP(info) {
+struct limine_mp_info {
     uint64_t reserved;
 };
 
-struct LIMINE_MP(response) {
+struct limine_mp_response {
     uint64_t cpu_count;
-    LIMINE_PTR(struct LIMINE_MP(info) **) cpus;
+    LIMINE_PTR(struct limine_mp_info **) cpus;
 };
 
 #else
 #error Unknown architecture
 #endif
 
-struct LIMINE_MP(request) {
+struct limine_mp_request {
     uint64_t id[4];
     uint64_t revision;
-    LIMINE_PTR(struct LIMINE_MP(response) *) response;
+    LIMINE_PTR(struct limine_mp_response *) response;
     uint64_t flags;
 };
 
