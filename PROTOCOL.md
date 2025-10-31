@@ -28,7 +28,6 @@ languages.
   - [Base Revision 2](#base-revision-2)
   - [Base Revision 3](#base-revision-3)
   - [Base Revision 4](#base-revision-4)
-- [Features](#features)
 - [Memory Layout at Entry](#memory-layout-at-entry)
 - [Caching](#caching)
   - [x86-64](#x86-64)
@@ -40,6 +39,7 @@ languages.
   - [aarch64](#aarch64-1)
   - [riscv64](#riscv64-1)
   - [loongarch64](#loongarch64-1)
+- [Features](#features)
 - [Feature List](#feature-list)
   - [Bootloader Info](#bootloader-info-feature)
   - [Executable Command Line](#executable-command-line-feature)
@@ -88,7 +88,7 @@ The ABI the Limine protocol uses and expects the application to comply to are as
   - LP64 for riscv64
   - LP64S for loongarch64
 
-All of these are with FPU/SIMD disabled (AKA sometimes also referred to as Soft-Float).
+All of these are with FPU/SIMD disabled (sometimes also referred to as Soft-Float).
 
 ## Requests Delimiters
 
@@ -235,63 +235,6 @@ This is the default revision if no base revision tag is provided.
   - `MAIR_EL1.Attr0` is guaranteed to be `0xff` (Normal Write-Back RW-Allocate non-transient).
   - `MAIR_EL1.Attr1` is guaranteed to be the framebuffer's correct caching type.
   - All other `MAIR_EL1` entries are guaranteed unused unless specified by a request.
-
-## Features
-
-The protocol is centered around the concept of request/response - collectively
-named "features" - where the executable requests some action or information from
-the bootloader, and the bootloader responds accordingly, if it is capable of
-doing so.
-
-In C terms, a feature is comprised of 2 structures: the request, and the response.
-
-A request has 3 mandatory members at the beginning of the structure:
-```c
-struct limine_example_request {
-    uint64_t id[4];
-    uint64_t revision;
-    struct limine_example_response *response;
-    ... optional members follow ...
-};
-```
-* `id` - The ID of the request. This is an 8-byte aligned magic number that the
-    bootloader will scan for inside the loaded executable image to find requests.
-    Request IDs are composed of 4 64-bit unsigned integers, but the first 2 are
-    common to every request:
-    ```c
-    #define LIMINE_COMMON_MAGIC 0xc7b1dd30df4c8b88, 0x0a82e883a194f07b
-    ```
-    Requests may be located anywhere inside the loaded executable image as long as they are
-    8-byte aligned. There may only be 1 of the same request. The bootloader will refuse
-    to boot an executable with multiple of the same request IDs.
-* `revision` - The revision of the request that the executable provides. This starts at 0 and is
-bumped whenever new members or functionality are added to the request structure.
-Bootloaders process requests in a backwards compatible manner, *always*. This
-means that if the bootloader does not support the revision of the request,
-it will process the request as if it were the highest revision that the bootloader
-supports.
-* `response` - This field is filled in by the bootloader at load time, with a
-pointer to the response structure, if the request was successfully processed.
-If the request is unsupported or was not successfully processed, this field
-is *left untouched*, meaning that if it was set to `NULL`, it will stay that
-way.
-
-A response has only 1 mandatory member at the beginning of the structure:
-```c
-struct limine_example_response {
-    uint64_t revision;
-    ... optional members follow ...
-};
-```
-* `revision` - Like for requests, bootloaders will instead mark responses with a
-revision number. This revision is not coupled between requests and responses,
-as they are bumped individually when new members are added or functionality is
-changed. Bootloaders will set the revision to the one they provide, and this is
-*always backwards compatible*, meaning higher revisions support all that lower
-revisions do.
-
-This is all there is to features. For a list of official Limine features, read
-the "Feature List" section below.
 
 ## Memory Layout at Entry
 
@@ -569,6 +512,63 @@ If booted by EFI, boot services are exited.
 `PG` in `CSR.CRMD` is 1, `DA` is 0, `IE` is 0 and `PLV` is 0 but is otherwise unspecified.
 
 `CSR.TLBRENTRY` is filled with a provided TLB refill handler.
+
+## Features
+
+The protocol is centered around the concept of request/response - collectively
+named "features" - where the executable requests some action or information from
+the bootloader, and the bootloader responds accordingly, if it is capable of
+doing so.
+
+In C terms, a feature is comprised of 2 structures: the request, and the response.
+
+A request has 3 mandatory members at the beginning of the structure:
+```c
+struct limine_example_request {
+    uint64_t id[4];
+    uint64_t revision;
+    struct limine_example_response *response;
+    ... optional members follow ...
+};
+```
+* `id` - The ID of the request. This is an 8-byte aligned magic number that the
+    bootloader will scan for inside the loaded executable image to find requests.
+    Request IDs are composed of 4 64-bit unsigned integers, but the first 2 are
+    common to every request:
+    ```c
+    #define LIMINE_COMMON_MAGIC 0xc7b1dd30df4c8b88, 0x0a82e883a194f07b
+    ```
+    Requests may be located anywhere inside the loaded executable image as long as they are
+    8-byte aligned. There may only be 1 of the same request. The bootloader will refuse
+    to boot an executable with multiple of the same request IDs.
+* `revision` - The revision of the request that the executable provides. This starts at 0 and is
+bumped whenever new members or functionality are added to the request structure.
+Bootloaders process requests in a backwards compatible manner, *always*. This
+means that if the bootloader does not support the revision of the request,
+it will process the request as if it were the highest revision that the bootloader
+supports.
+* `response` - This field is filled in by the bootloader at load time, with a
+pointer to the response structure, if the request was successfully processed.
+If the request is unsupported or was not successfully processed, this field
+is *left untouched*, meaning that if it was set to `NULL`, it will stay that
+way.
+
+A response has only 1 mandatory member at the beginning of the structure:
+```c
+struct limine_example_response {
+    uint64_t revision;
+    ... optional members follow ...
+};
+```
+* `revision` - Like for requests, bootloaders will instead mark responses with a
+revision number. This revision is not coupled between requests and responses,
+as they are bumped individually when new members are added or functionality is
+changed. Bootloaders will set the revision to the one they provide, and this is
+*always backwards compatible*, meaning higher revisions support all that lower
+revisions do.
+
+This is all there is to features. For a list of official Limine features, read
+the "Feature List" section below.
 
 ## Feature List
 
