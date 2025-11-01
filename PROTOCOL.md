@@ -40,6 +40,8 @@ languages.
   - [riscv64](#riscv64-1)
   - [loongarch64](#loongarch64-1)
 - [Features](#features)
+  - [Request](#request)
+  - [Response](#response)
 - [Feature List](#feature-list)
   - [Bootloader Info](#bootloader-info-feature)
   - [Executable Command Line](#executable-command-line-feature)
@@ -69,17 +71,19 @@ languages.
 ## General Notes
 
 The "executable" is the kernel or otherwise the freestanding application being loaded
-by the Limine boot protocol.
+by the Limine boot protocol compliant bootloader.
 
 The Limine boot protocol does not enforce any specific executable binary format to use,
-but ELF is strongly recommended.
+though ELF is strongly recommended.
 
-Only 64-bit, Little Endian machines are or will be supported.
+Only 64-bit, Little Endian machines are supported or will be supported in the future.
 
 All pointers are 64-bit wide. All non-NULL pointers point to the object with the
-[Higher Half Direct Map](#hhdm-higher-half-direct-map-feature) (HHDM) offset already added to them, unless otherwise noted.
+[Higher Half Direct Map](#hhdm-higher-half-direct-map-feature) (HHDM) offset already added
+to them, unless otherwise noted.
 
-All responses and associated data structures are placed in [bootloader-reclaimable memory](#memory-map-feature) regions.
+All [responses](#response) and associated data structures are placed in
+[bootloader-reclaimable memory](#memory-map-feature) regions.
 
 The ABI the Limine protocol uses and expects the application to comply with are as follows:
   - SysV Itanium ABI for x86-64
@@ -91,9 +95,9 @@ All of these are with FPU/SIMD disabled (sometimes also referred to as Soft-Floa
 
 ## Requests Delimiters
 
-The bootloader can be told to start and/or stop searching for requests (including base
-revision tags) in an executable's loaded image by placing start and/or end markers,
-on an 8-byte aligned boundary.
+The bootloader can be told to start and/or stop searching for [requests](#request)
+(including [base revision](#base-revisions) tags) in an executable's loaded image by
+placing start and/or end markers, on an 8-byte aligned boundary.
 
 The bootloader will only accept requests placed between the last start marker found (if
 there happen to be more than 1, which there should not, ideally) and the first end
@@ -105,10 +109,12 @@ marker found.
 #define LIMINE_REQUESTS_END_MARKER { 0xadc0e0531bb10d03, 0x9572709f31764c62 }
 ```
 
-For [base revisions](#base-revisions) 0 and 1, the requests delimiters are *hints*. The bootloader can still search for
-requests and base revision tags outside the delimited area if it doesn't support the hints.
+For base revisions [0](#base-revision-0) and [1](#base-revision-1), the requests
+delimiters are *hints*. The bootloader can still search for requests and base revision
+tags outside the delimited area if it doesn't support the hints.
 
-[Base revision 2](#base-revision-2)'s sole difference compared to [base revision 1](#base-revision-1) is that support for
+[Base revision 2](#base-revision-2)'s sole difference compared to
+[base revision 1](#base-revision-1) is that support for
 request delimiters has to be provided and the delimiters must be honoured, if present,
 rather than them just being a hint.
 
@@ -118,29 +124,30 @@ rather than them just being a hint.
 > This behaviour is deprecated and removed as of [base revision 1](#base-revision-1)
 
 For executables requesting deprecated [base revision 0](#base-revision-0),
-if the executable file contains a `.limine_reqs` section, the bootloader
-will, instead of scanning the executable for requests, fetch the requests
-from a NULL-terminated array of pointers to the provided requests, contained
-inside said section.
+if the executable file contains a `.limine_reqs` executable section, the bootloader
+will, instead of scanning the whole executable's loaded image for [requests](#request),
+fetch the requests from a NULL-terminated array of pointers to the provided requests,
+contained inside said section.
 
 ## Base Revisions
 
 The Limine boot protocol comes in several base revisions; so far, 5
-base revisions are specified: 0 through 4.
+base revisions are specified: [0 through 4](#base-revision-changes-summary).
 
 Base revisions change certain behaviours of the Limine boot protocol
 outside any specific feature. The specifics are going to be described as
-needed throughout this specification, and are also mentioned in the
+needed throughout this specification, but are also coalesced in the
 [Base Revision Changes Summary](#base-revision-changes-summary) section.
 
-Base revision 0 through 3 are considered deprecated. [Base revision 0](#base-revision-0) is the default base revision
+Base revision 0 through 3 are considered deprecated.
+[Base revision 0](#base-revision-0) is the default base revision
 an executable is assumed to be requesting and complying to if no base revision tag
 is provided by the executable, for backwards compatibility.
 
-A base revision tag is a set of 3 64-bit values placed somewhere in the loaded executable
-image on an 8-byte aligned boundary; the first 2 values are a magic number
+A base revision tag is a set of 3 64-bit values placed somewhere in the loaded
+executable image on an 8-byte aligned boundary; the first 2 values are a magic number
 for the bootloader to be able to identify the tag, and the last value is the
-requested base revision number. Lack of base revision tag implies revision 0.
+requested base revision number.
 
 ```c
 #define LIMINE_BASE_REVISION(N) { 0xf9562b2d5c95a6c8, 0x6a7b384944536bdc, (N) }
@@ -161,77 +168,100 @@ On the other hand, if the executable's requested base revision is supported,
 > bootloader does not yet support the executable's requested base revision,
 > it is up to the executable itself to fail (or handle the condition otherwise).
 
-For any Limine-compliant bootloader supporting [base revision 3](#base-revision-3) or greater, it is
-*mandatory* to load executables requesting higher unsupported base revisions with
-at least base revision 3, and it is mandatory for it to always set the 2nd component
-of the base revision tag to the base revision actually used to load the executable,
-regardless of whether it was the requested one or not.
+For any Limine-compliant bootloader supporting [base revision 3](#base-revision-3)
+or greater, it is *mandatory* to load executables requesting higher unsupported base
+revisions with at least base revision 3, and it is mandatory for it to always set the
+2nd component of the base revision tag to the base revision actually used to load the
+executable, regardless of whether it was the requested one or not.
+
+```c
+#define LIMINE_BASE_REVISION_SUPPORTED(VAR) ((VAR)[2] == 0)
+
+#define LIMINE_LOADED_BASE_REVISION_VALID(VAR) ((VAR)[1] != 0x6a7b384944536bdc)
+#define LIMINE_LOADED_BASE_REVISION(VAR) ((VAR)[1])
+```
 
 ## Base Revision Changes Summary
 
-This section consolidates all changes introduced by each base revision for easy reference.
+This section consolidates all changes introduced by each [base revision](#base-revisions)
+for easy reference.
 
 ### Base Revision 0
 
-This is the default revision if no base revision tag is provided.
+This is the default base revision used if no base revision tag is provided.
 
-- Supports the `.limine_reqs` section for providing a list of requests.
+- Supports the `.limine_reqs` executable section for providing a list of
+    [requests](#request).
 - Request delimiters (start/end markers) are treated as hints only.
 - Identity mapping (starting at offset 0x1000) available.
-- [HHDM](#hhdm-higher-half-direct-map-feature) (Higher Half Direct Map) covers **all** memory map regions.
-- Memory between 0 and 0x1000 is **never** marked as usable.
+- [HHDM](#hhdm-higher-half-direct-map-feature) (Higher Half Direct Map) covers **all**
+    memory map regions.
+- Memory between 0 and 0x1000 is **never** marked as usable in the
+    [memory map](#memory-map-feature).
 - **aarch64**: `TTBR0_EL1` points to bootloader-provided identity mapping page tables.
 
 ### Base Revision 1
 
-**Changes from Revision 0**:
-- Removed support for `.limine_reqs` section.
-- Removed identity mapping.
-- [HHDM](#hhdm-higher-half-direct-map-feature) mappings no longer include memory map regions of types:
+**Changes from Base Revision 0**:
+- Dropped support for the `.limine_reqs` executable section [request](#request) search
+    method.
+- Dropped identity mapping.
+- [HHDM](#hhdm-higher-half-direct-map-feature) mappings no longer include
+    [memory map regions](#memory-map-feature) of types:
   - Reserved
   - Bad memory
 - **aarch64**: `TTBR0_EL1` is now **unspecified** and can be freely used by the executable.
-- Request delimiters remain hints only.
+- [Requests delimiters](#requests-delimiters) remain hints only.
 
 ### Base Revision 2
 
-**Changes from Revision 1**:
-- Request delimiters must now be **honoured** if present (no longer optional hints).
-- All other behaviors remain the same as revision 1.
+**Changes from Base Revision 1**:
+- [Requests delimiters](#requests-delimiters) must now be **honoured** if present
+    (no longer optional hints).
+- All other behaviors remain the same as [base revision 1](#base-revision-1).
 
 ### Base Revision 3
 
-**Changes from Revision 2**:
-- [HHDM](#hhdm-higher-half-direct-map-feature) mapping becomes **restrictive** - only the following memory map regions are mapped:
+**Changes from Base Revision 2**:
+- [HHDM](#hhdm-higher-half-direct-map-feature) mapping becomes **restrictive** - only the
+    following [memory map regions](#memory-map-feature) are mapped:
   - Usable
   - Bootloader reclaimable
   - Executable and modules
   - Framebuffer
-- Removed unconditional direct map of the first 4 GiB.
-- Memory between 0 and 0x1000 **can now** be marked as usable.
+- Dropped unconditional direct map of the first 4 GiB of memory to the
+    [Higher Half Direct Map](#hhdm-higher-half-direct-map-feature).
+- Memory between 0 and 0x1000 **can now** be marked as usable in the
+    [memory map](#memory-map-feature).
 - [RSDP](#rsdp-feature) address is returned as **physical** (base revision 3 **only**).
 - [SMBIOS](#smbios-feature) entry point addresses are returned as **physical**.
 - [EFI system table](#efi-system-table-feature) address is returned as **physical**.
-- **Bootloader requirement**: Must support loading executables requesting higher unsupported revisions
-    with at least base revision 3.
-- **Bootloader requirement**: Must set the 2nd component of base revision tag to actual revision used.
+- **Bootloader requirement**: Must support loading executables requesting higher
+    unsupported revisions with at least base revision 3.
+- **Bootloader requirement**: Must set the 2nd component of the base revision tag to the
+    actual base revision used.
 
 ### Base Revision 4
 
-**Changes from Revision 3**:
-- [HHDM](#hhdm-higher-half-direct-map-feature) additionally maps the following memory map regions:
+**Changes from Base Revision 3**:
+- [HHDM](#hhdm-higher-half-direct-map-feature) additionally maps the following
+    [memory map regions](#memory-map-feature):
   - ACPI tables
   - ACPI reclaimable
   - ACPI NVS
-- Added new memory map type: `LIMINE_MEMMAP_ACPI_TABLES`.
-- Guaranteed that ACPI tables (RSDP, RSDT, XSDT, all tables pointed to by RSDT and XSDT, FACS,
-    X_FACS, DSDT, X_DSDT) are mapped within ACPI memory map regions.
-- [RSDP](#rsdp-feature) address is returned as **virtual ([HHDM](#hhdm-higher-half-direct-map-feature))**
-    again (physical only in [base revision 3](#base-revision-3)).
+- Added new [memory map](#memory-map-feature) region type: `LIMINE_MEMMAP_ACPI_TABLES`.
+- Guaranteed that ACPI tables (RSDP, RSDT, XSDT, all tables pointed to by RSDT and XSDT,
+    FACS, X_FACS, DSDT, X_DSDT) are mapped within any of the ACPI
+    [memory map regions](#memory-map-feature).
+- [RSDP](#rsdp-feature) address is returned as **virtual**
+    **([HHDM](#hhdm-higher-half-direct-map-feature))** again (physical only in
+    [base revision 3](#base-revision-3)).
 - **aarch64**:
-  - `MAIR_EL1.Attr0` is guaranteed to be `0xff` (Normal Write-Back RW-Allocate non-transient).
+  - `MAIR_EL1.Attr0` is guaranteed to be `0xff` (Normal Write-Back RW-Allocate
+      non-transient).
   - `MAIR_EL1.Attr1` is guaranteed to be the framebuffer's correct caching type.
-  - All other `MAIR_EL1` entries are guaranteed unused unless specified by a request.
+  - All other `MAIR_EL1` entries are guaranteed unused unless specified by a request
+      (no such requests are specified yet).
 
 ## Memory Layout at Entry
 
@@ -519,6 +549,8 @@ doing so.
 
 In C terms, a feature is comprised of 2 structures: the request, and the response.
 
+### Request
+
 A request has 3 mandatory members at the beginning of the structure:
 ```c
 struct limine_example_request {
@@ -549,6 +581,8 @@ pointer to the response structure, if the request was successfully processed.
 If the request is unsupported or was not successfully processed, this field
 is *left untouched*, meaning that if it was set to `NULL`, it will stay that
 way.
+
+### Response
 
 A response has only 1 mandatory member at the beginning of the structure:
 ```c
