@@ -573,7 +573,7 @@ the "Feature List" section below.
 
 ID:
 ```c
-#define LIMINE_BOOTLOADER_INFO_REQUEST { LIMINE_COMMON_MAGIC, 0xf55038d8e2a1202f, 0x279426fcf5f59740 }
+#define LIMINE_BOOTLOADER_INFO_REQUEST_ID { LIMINE_COMMON_MAGIC, 0xf55038d8e2a1202f, 0x279426fcf5f59740 }
 ```
 
 Request:
@@ -601,7 +601,7 @@ version of the loading bootloader.
 
 ID:
 ```c
-#define LIMINE_EXECUTABLE_CMDLINE_REQUEST { LIMINE_COMMON_MAGIC, 0x4b161536e598651e, 0xb390ad4a2f1f303a }
+#define LIMINE_EXECUTABLE_CMDLINE_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x4b161536e598651e, 0xb390ad4a2f1f303a }
 ```
 
 Request:
@@ -629,7 +629,7 @@ booted executable. This is equivalent to the `string` member of the `executable_
 
 ID:
 ```c
-#define LIMINE_FIRMWARE_TYPE_REQUEST { LIMINE_COMMON_MAGIC, 0x8c2f75d90bef28a8, 0x7045a4688eac00c3 }
+#define LIMINE_FIRMWARE_TYPE_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x8c2f75d90bef28a8, 0x7045a4688eac00c3 }
 ```
 
 Request:
@@ -661,7 +661,7 @@ struct limine_firmware_type_response {
 
 ID:
 ```c
-#define LIMINE_STACK_SIZE_REQUEST { LIMINE_COMMON_MAGIC, 0x224ef0460a8e8926, 0xe1cb0fc25f46ea3d }
+#define LIMINE_STACK_SIZE_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x224ef0460a8e8926, 0xe1cb0fc25f46ea3d }
 ```
 
 Request:
@@ -687,7 +687,7 @@ struct limine_stack_size_response {
 
 ID:
 ```c
-#define LIMINE_HHDM_REQUEST { LIMINE_COMMON_MAGIC, 0x48dcf1cb8ad2b852, 0x63984e959a98244b }
+#define LIMINE_HHDM_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x48dcf1cb8ad2b852, 0x63984e959a98244b }
 ```
 
 Request:
@@ -714,7 +714,7 @@ direct map.
 
 ID:
 ```c
-#define LIMINE_FRAMEBUFFER_REQUEST { LIMINE_COMMON_MAGIC, 0x9d5827dcd881dd75, 0xa3148604f6fab11b }
+#define LIMINE_FRAMEBUFFER_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x9d5827dcd881dd75, 0xa3148604f6fab11b }
 ```
 
 Request:
@@ -794,7 +794,7 @@ before control is passed to it.
 
 ID:
 ```c
-#define LIMINE_PAGING_MODE_REQUEST { LIMINE_COMMON_MAGIC, 0x95c1a0edab0944cb, 0xa4e5cb3842f7488a }
+#define LIMINE_PAGING_MODE_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x95c1a0edab0944cb, 0xa4e5cb3842f7488a }
 ```
 
 Request:
@@ -893,7 +893,7 @@ Values assignable to `mode`, `max_mode`, and `min_mode`:
 
 ID:
 ```c
-#define LIMINE_MP_REQUEST { LIMINE_COMMON_MAGIC, 0x95a67b819a1b857e, 0xa0b61b723b6a73e0 }
+#define LIMINE_MP_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x95a67b819a1b857e, 0xa0b61b723b6a73e0 }
 ```
 
 Request:
@@ -1062,7 +1062,7 @@ processor.
 
 ID:
 ```c
-#define LIMINE_RISCV_BSP_HARTID_REQUEST { LIMINE_COMMON_MAGIC, 0x1369359f025525f9, 0x2ff2a56178391bb6 }
+#define LIMINE_RISCV_BSP_HARTID_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x1369359f025525f9, 0x2ff2a56178391bb6 }
 ```
 
 Request:
@@ -1091,7 +1091,7 @@ struct limine_riscv_bsp_hartid_response {
 
 ID:
 ```c
-#define LIMINE_MEMMAP_REQUEST { LIMINE_COMMON_MAGIC, 0x67cf3d9d378a806f, 0xe304acdfc50c3c62 }
+#define LIMINE_MEMMAP_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x67cf3d9d378a806f, 0xe304acdfc50c3c62 }
 ```
 
 Request:
@@ -1202,7 +1202,7 @@ EFI memory map entry types are converted to Limine memory map type as follows:
 
 ID:
 ```c
-#define LIMINE_ENTRY_POINT_REQUEST { LIMINE_COMMON_MAGIC, 0x13d86c035a1cd3e1, 0x2b0caa89d8f3026a }
+#define LIMINE_ENTRY_POINT_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x13d86c035a1cd3e1, 0x2b0caa89d8f3026a }
 ```
 
 Request:
@@ -1230,7 +1230,7 @@ struct limine_entry_point_response {
 
 ID:
 ```c
-#define LIMINE_EXECUTABLE_FILE_REQUEST { LIMINE_COMMON_MAGIC, 0xad97e90e83f1ed67, 0x31eb5d1c5ff23b69 }
+#define LIMINE_EXECUTABLE_FILE_REQUEST_ID { LIMINE_COMMON_MAGIC, 0xad97e90e83f1ed67, 0x31eb5d1c5ff23b69 }
 ```
 
 Request:
@@ -1259,7 +1259,7 @@ the [Executable Command Line feature](#executable-command-line-feature).
 
 ID:
 ```c
-#define LIMINE_MODULE_REQUEST { LIMINE_COMMON_MAGIC, 0x3e7e279702be32af, 0xca1c4f3bd1280cee }
+#define LIMINE_MODULE_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x3e7e279702be32af, 0xca1c4f3bd1280cee }
 ```
 
 Request:
@@ -1324,7 +1324,7 @@ struct limine_module_response {
 
 ID:
 ```c
-#define LIMINE_RSDP_REQUEST { LIMINE_COMMON_MAGIC, 0xc5e77b6b397e7b43, 0x27637845accdcf3c }
+#define LIMINE_RSDP_REQUEST_ID { LIMINE_COMMON_MAGIC, 0xc5e77b6b397e7b43, 0x27637845accdcf3c }
 ```
 
 Request:
@@ -1350,7 +1350,7 @@ struct limine_rsdp_response {
 
 ID:
 ```c
-#define LIMINE_SMBIOS_REQUEST { LIMINE_COMMON_MAGIC, 0x9e9046f11e095391, 0xaa4a520fefbde5ee }
+#define LIMINE_SMBIOS_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x9e9046f11e095391, 0xaa4a520fefbde5ee }
 ```
 
 Request:
@@ -1378,7 +1378,7 @@ struct limine_smbios_response {
 
 ID:
 ```c
-#define LIMINE_EFI_SYSTEM_TABLE_REQUEST { LIMINE_COMMON_MAGIC, 0x5ceba5163eaaf6d6, 0x0a6981610cf65fcc }
+#define LIMINE_EFI_SYSTEM_TABLE_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x5ceba5163eaaf6d6, 0x0a6981610cf65fcc }
 ```
 
 Request:
@@ -1404,7 +1404,7 @@ struct limine_efi_system_table_response {
 
 ID:
 ```c
-#define LIMINE_EFI_MEMMAP_REQUEST { LIMINE_COMMON_MAGIC, 0x7df62a431d6872d5, 0xa4fcdfb3e57306c8 }
+#define LIMINE_EFI_MEMMAP_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x7df62a431d6872d5, 0xa4fcdfb3e57306c8 }
 ```
 
 Request:
@@ -1440,7 +1440,7 @@ struct limine_efi_memmap_response {
 
 ID:
 ```c
-#define LIMINE_DATE_AT_BOOT_REQUEST { LIMINE_COMMON_MAGIC, 0x502746e184c088aa, 0xfbc5ec83e6327893 }
+#define LIMINE_DATE_AT_BOOT_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x502746e184c088aa, 0xfbc5ec83e6327893 }
 ```
 
 Request:
@@ -1466,7 +1466,7 @@ struct limine_date_at_boot_response {
 
 ID:
 ```c
-#define LIMINE_EXECUTABLE_ADDRESS_REQUEST { LIMINE_COMMON_MAGIC, 0x71ba76863cc55f63, 0xb2644a48c516a487 }
+#define LIMINE_EXECUTABLE_ADDRESS_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x71ba76863cc55f63, 0xb2644a48c516a487 }
 ```
 
 Request:
@@ -1494,7 +1494,7 @@ struct limine_executable_address_response {
 
 ID:
 ```c
-#define LIMINE_DTB_REQUEST { LIMINE_COMMON_MAGIC, 0xb40ddb48fb54bac7, 0x545081493f81ffb7 }
+#define LIMINE_DTB_REQUEST_ID { LIMINE_COMMON_MAGIC, 0xb40ddb48fb54bac7, 0x545081493f81ffb7 }
 ```
 
 Request:
@@ -1531,7 +1531,7 @@ struct limine_dtb_response {
 
 ID:
 ```c
-#define LIMINE_BOOTLOADER_PERFORMANCE_REQUEST { LIMINE_COMMON_MAGIC, 0x6b50ad9bf36d13ad, 0xdc4c7e88fc759e17 }
+#define LIMINE_BOOTLOADER_PERFORMANCE_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x6b50ad9bf36d13ad, 0xdc4c7e88fc759e17 }
 ```
 
 Request:
