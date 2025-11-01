@@ -31,34 +31,16 @@ extern "C" {
 #  define LIMINE_PTR(TYPE) TYPE
 #endif
 
-#ifdef __GNUC__
-#  define LIMINE_DEPRECATED __attribute__((__deprecated__))
-#  define LIMINE_DEPRECATED_IGNORE_START \
-    _Pragma("GCC diagnostic push") \
-    _Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
-#  define LIMINE_DEPRECATED_IGNORE_END \
-    _Pragma("GCC diagnostic pop")
-#else
-#  define LIMINE_DEPRECATED
-#  define LIMINE_DEPRECATED_IGNORE_START
-#  define LIMINE_DEPRECATED_IGNORE_END
-#endif
+#define LIMINE_REQUESTS_START_MARKER { 0xf6b8f4b39de7d1ae, 0xfab91a6940fcb9cf, \
+                                       0x785c6ed015d3e316, 0x181e920a7852b9d9 }
+#define LIMINE_REQUESTS_END_MARKER { 0xadc0e0531bb10d03, 0x9572709f31764c62 }
 
-#define LIMINE_REQUESTS_START_MARKER \
-    uint64_t limine_requests_start_marker[4] = { 0xf6b8f4b39de7d1ae, 0xfab91a6940fcb9cf, \
-                                                 0x785c6ed015d3e316, 0x181e920a7852b9d9 };
-#define LIMINE_REQUESTS_END_MARKER \
-    uint64_t limine_requests_end_marker[2] = { 0xadc0e0531bb10d03, 0x9572709f31764c62 };
+#define LIMINE_BASE_REVISION(N) { 0xf9562b2d5c95a6c8, 0x6a7b384944536bdc, (N) }
 
-#define LIMINE_REQUESTS_DELIMITER LIMINE_REQUESTS_END_MARKER
+#define LIMINE_BASE_REVISION_SUPPORTED(VAR) ((VAR)[2] == 0)
 
-#define LIMINE_BASE_REVISION(N) \
-    uint64_t limine_base_revision[3] = { 0xf9562b2d5c95a6c8, 0x6a7b384944536bdc, (N) };
-
-#define LIMINE_BASE_REVISION_SUPPORTED (limine_base_revision[2] == 0)
-
-#define LIMINE_LOADED_BASE_REV_VALID (limine_base_revision[1] != 0x6a7b384944536bdc)
-#define LIMINE_LOADED_BASE_REVISION (limine_base_revision[1])
+#define LIMINE_LOADED_BASE_REVISION_VALID(VAR) ((VAR)[1] != 0x6a7b384944536bdc)
+#define LIMINE_LOADED_BASE_REVISION(VAR) ((VAR)[1])
 
 #define LIMINE_COMMON_MAGIC 0xc7b1dd30df4c8b88, 0x0a82e883a194f07b
 
