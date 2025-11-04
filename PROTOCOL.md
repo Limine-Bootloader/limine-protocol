@@ -269,6 +269,8 @@ The protocol mandates executables to load themselves at or above
 `0xffffffff80000000`. Lower half executables are *not supported*. For relocatable executables
 asking to be loaded at address 0, a minimum slide of `0xffffffff80000000` is applied.
 
+A "slide" is an offset applied to the executable's base load address.
+
 At handoff, the executable will be properly loaded and mapped with appropriate
 MMU permissions, as supervisor, at the requested virtual memory address (provided it is at
 or above `0xffffffff80000000`).
@@ -297,8 +299,8 @@ These mappings are supervisor, read, write, execute (-rwx).
 For [base revision 0](#base-revision-0), the above-4GiB identity and HHDM mappings cover any memory
 map region.
 
-For [base revisions 1](#base-revision-1) and [2](#base-revision-2), the above-4GiB HHDM mappings do not comprise memory map regions
-of types:
+For [base revisions 1](#base-revision-1) and [2](#base-revision-2), the above-4GiB HHDM mappings do not
+comprise memory map regions of types:
  - Reserved
  - Bad memory
 
@@ -308,8 +310,8 @@ For [base revision 3](#base-revision-3) or greater, the only memory map regions 
  - Executable and modules
  - Framebuffer
 
-For [base revision 3](#base-revision-3) or greater, the unconditional direct map of the first 4GiB is
-dropped, and only memory map regions of complying types are mapped in.
+Additionally, the unconditional direct map of the first 4GiB is dropped, and only memory map regions
+of complying types are mapped in.
 
 For [base revision 4](#base-revision-4) or greater, the following regions are also mapped in addition
 to those mapped by [base revision 3](#base-revision-3):
@@ -317,29 +319,24 @@ to those mapped by [base revision 3](#base-revision-3):
  - ACPI reclaimable
  - ACPI NVS
 
-For [base revision 4](#base-revision-4) or greater, ACPI tables (that being RSDP, RSDT, XSDT, all
-tables pointed to by RSDT and XSDT, FACS, X_FACS, DSDT, X_DSDT - if present and
-possible to map) are guaranteed to be mapped within any of the 3 ACPI memory map
-regions.
-
 The bootloader page tables are in [bootloader-reclaimable memory](#memory-map-feature) (see the
 [Memory Map feature](#memory-map-feature)), and their specific layout is undefined as long as they provide
 the above memory mappings.
 
 If the executable is a position independent executable, the bootloader is free to
-relocate it as it sees fit, potentially performing KASLR (as specified by the
-config).
+relocate it as it sees fit, potentially performing slide randomisation.
 
 ## Caching
 
 ### x86-64
 
-The executable, loaded at or above `0xffffffff80000000`, sees all of its
-segments mapped using write-back (WB) caching at the page tables level.
+The executable, loaded at or above `0xffffffff80000000` in virtual memory, sees all of its
+segments mapped using write-back (WB) caching at the page tables level. That being `PAT[0]`, if
+the PAT is supported.
 
 All HHDM and identity map memory regions are mapped using write-back (WB) caching at the page
-tables level, except framebuffer regions which are mapped using write-combining
-(WC) caching at the page tables level (if the CPU support the PAT, see below).
+tables level (again, `PAT[0]`), except framebuffer regions which are mapped using write-combining
+(WC) caching at the page tables level (`PAT[5]`, if the CPU support the PAT, see below).
 
 If the CPU supports the PAT (Page Attribute Table), its layout is specified to be as follows:
 ```
@@ -357,38 +354,38 @@ The MTRRs are left as the firmware set them up.
 
 ### aarch64
 
-The executable, loaded at or above `0xffffffff80000000`, sees all of its
-segments mapped using Normal Write-Back RW-Allocate non-transient caching mode.
+The executable, loaded at or above `0xffffffff80000000` in virtual memory, sees all of its
+segments mapped using Normal Write-Back RW-Allocate non-transient caching mode (`MAIR_EL1.Attr0`).
 
 All HHDM and identity map memory regions are mapped using the Normal Write-Back RW-Allocate
-non-transient caching mode, except for the framebuffer regions, which are
-mapped in using an unspecified caching mode, correct for use with the
-framebuffer on the platform.
+non-transient caching mode (guaranteed to be in `MAIR_EL1.Attr0` for
+[base revision 4](#base-revision-4) or greater), except for the framebuffer regions, which are
+mapped in using an unspecified caching mode (guaranteed to be in `MAIR_EL1.Attr1` for
+[base revision 4](#base-revision-4) or greater), correct for use with the framebuffer on the platform.
 
-The `MAIR_EL1` register will at least contain entries for the above-mentioned
+For base revisions < 4, the `MAIR_EL1` register will at least contain entries for the above-mentioned
 caching modes, in an unspecified order.
 
 For [base revision 4](#base-revision-4) and greater, `MAIR_EL1.Attr0` is guaranteed to be `0xff` (AKA Normal
 Write-Back RW-Allocate non-transient caching mode), `MAIR_EL1.Attr1` is guaranteed to
 be the entry used to map the framebuffer, of the correct caching type for it, and all
-other entries in `MAIR_EL1` are guaranteed unused unless otherwise specified by a request.
-
-In order to access MMIO regions, the executable must ensure the correct caching mode
-is used on its own.
+other entries in `MAIR_EL1` are guaranteed unused unless otherwise specified by a request
+(no such requests are specified yet).
 
 ### riscv64
 
+The executable, loaded at or above `0xffffffff80000000`, in virtual memory, and all HHDM and
+identity map memory regions are mapped with the default `PBMT=PMA`.
+
 If the `Svpbmt` extension is available, all framebuffer memory regions are mapped
-with `PBMT=NC` to enable write-combining optimizations. The executable,
-loaded at or above `0xffffffff80000000`, and all HHDM and identity map memory regions are mapped
-with the default `PBMT=PMA`.
+with `PBMT=NC` to enable write-combining optimizations.
 
 If the `Svpbmt` extension is not available, no PMAs can be overridden (effectively,
 everything is mapped with `PBMT=PMA`).
 
 ### loongarch64
 
-The executable, loaded at or above `0xffffffff80000000`, sees all of its
+The executable, loaded at or above `0xffffffff80000000`, in virtual memory, sees all of its
 segments mapped using the Coherent Cached (CC) memory access type (MAT).
 
 All HHDM and identity map memory regions are mapped using the Coherent Cached (CC)
@@ -423,7 +420,8 @@ IF flag, VM flag, and direction flag are cleared on entry. Other flags
 undefined.
 
 PG is enabled (`cr0`), PE is enabled (`cr0`), PAE is enabled (`cr4`),
-WP is enabled (`cr0`), LME is enabled (`EFER`), NX is enabled (`EFER`) if available.
+WP is enabled (`cr0`), LME is enabled (`EFER`).
+NX is enabled (`EFER`) if available.
 If 5-level paging is requested and available, then 5-level paging is enabled
 (LA57 bit in `cr4`).
 
@@ -434,12 +432,12 @@ Legacy PIC (if available) and IO APIC IRQs (only those with delivery mode fixed
 
 If booted by EFI, boot services are exited.
 
-`rsp` is set to point to a stack, in [bootloader-reclaimable memory](#memory-map-feature), which is
-at least 64KiB (65536 bytes) in size, or the size specified in the
+`rsp` is set to point to the top of a stack, in [bootloader-reclaimable memory](#memory-map-feature),
+which is at least 64KiB (65536 bytes) in size, or the size specified in the
 [Stack Size feature](#stack-size-feature). An invalid return address of 0 is pushed
-to the stack before jumping to the executable.
+to this stack before jumping to the executable's entry point.
 
-All other general purpose registers are set to 0.
+All other general purpose registers (`rax`-`r15`) are set to 0.
 
 ### aarch64
 
@@ -481,8 +479,8 @@ thus be freely used by the executable.
 
 If booted by EFI, boot services are exited.
 
-`SP` is set to point to a stack, in [bootloader-reclaimable memory](#memory-map-feature), which is
-at least 64KiB (65536 bytes) in size, or the size specified in the
+`SP` is set to point to the top of a stack, in [bootloader-reclaimable memory](#memory-map-feature),
+which is at least 64KiB (65536 bytes) in size, or the size specified in the
 [Stack Size feature](#stack-size-feature).
 
 All other general purpose registers (including `X29` and `X30`) are set to 0.
@@ -498,8 +496,8 @@ value of `pc` is going to be taken from there.
 
 `x1`(`ra`) is set to 0, the executable must not return from the entry point.
 
-`x2`(`sp`) is set to point to a stack, in [bootloader-reclaimable memory](#memory-map-feature), which is
-at least 64KiB (65536 bytes) in size, or the size specified in the
+`x2`(`sp`) is set to point to the top of a stack, in [bootloader-reclaimable memory](#memory-map-feature),
+which is at least 64KiB (65536 bytes) in size, or the size specified in the
 [Stack Size feature](#stack-size-feature).
 
 `x3`(`gp`) is set to 0, executable must load its own global pointer if needed.
@@ -526,8 +524,8 @@ value of `$pc` is going to be taken from there.
 
 `$r1`(`$ra`) is set to 0, the executable must not return from the entry point.
 
-`$r3`(`$sp`) is set to point to a stack, in [bootloader-reclaimable memory](#memory-map-feature), which is
-at least 64KiB (65536 bytes) in size, or the size specified in the
+`$r3`(`$sp`) is set to point to the top of a stack, in [bootloader-reclaimable memory](#memory-map-feature),
+which is at least 64KiB (65536 bytes) in size, or the size specified in the
 [Stack Size feature](#stack-size-feature).
 
 All other general purpose registers, with the exception of `$r12`(`$t0`), are set to 0.
@@ -1211,6 +1209,10 @@ section, if the firmware did not already map them within either an ACPI reclaima
 or an ACPI NVS region.
 
 For [base revisions](#base-revisions) <= 2, memory between 0 and 0x1000 is never marked as usable memory.
+
+For [base revision 4](#base-revision-4) or greater, ACPI tables (that being RSDP, RSDT, XSDT, all
+tables pointed to by RSDT and XSDT, FACS, X_FACS, DSDT, X_DSDT - if present) are guaranteed
+to be mapped within any of the 3 ACPI memory map regions.
 
 The entries are guaranteed to be sorted by base address, lowest to highest.
 
