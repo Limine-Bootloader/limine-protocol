@@ -85,7 +85,7 @@ to them, unless otherwise noted.
 All [responses](#response) and associated data structures are placed in
 [bootloader-reclaimable memory](#memory-map-feature) regions.
 
-The ABI the Limine protocol uses and expects the application to comply with are as follows:
+The ABIs the Limine protocol uses and expects the application to comply with are as follows:
   - SysV Itanium ABI for x86-64
   - AAPCS LP64 for aarch64
   - LP64 for riscv64
@@ -654,8 +654,8 @@ struct limine_executable_cmdline_response {
 ```
 
 `cmdline` is a 0-terminated ASCII string containing the command line associated with the
-booted executable. This is equivalent to the `string` member of the `executable_file` structure of the
-[Executable File feature](#executable-file-feature).
+booted executable. This is a pointer to the same memory as the `string` member of the `executable_file`
+structure of the [Executable File feature](#executable-file-feature).
 
 ### Firmware Type Feature
 
@@ -770,6 +770,9 @@ struct limine_framebuffer_response {
 * `framebuffer_count` - How many framebuffers are present.
 * `framebuffers` - Pointer to an array of `framebuffer_count` pointers to
 `struct limine_framebuffer` structures.
+
+> [!NOTE]
+> If no framebuffer is available, no response will be provided.
 
 ```c
 // Constants for `memory_model`
@@ -940,6 +943,14 @@ struct limine_mp_request {
 
 * `flags` - Bit 0: Enable X2APIC, if possible. (x86-64 only)
 
+> [!NOTE]
+> The presence of this request will prompt the bootloader to bootstrap
+> the secondary processors. This will not be done if this request is not present.
+
+> [!NOTE]
+> If this request is supported, even on single-processor system, a response will be provided,
+> containing only the bootstrap processor's entry.
+
 #### x86-64:
 
 Response:
@@ -959,10 +970,6 @@ struct limine_mp_response {
 * `cpu_count` - How many CPUs are present. It includes the bootstrap processor.
 * `cpus` - Pointer to an array of `cpu_count` pointers to
 `struct limine_mp_info` structures.
-
-> [!NOTE]
-> The presence of this request will prompt the bootloader to bootstrap
-> the secondary processors. This will not be done if this request is not present.
 
 > [!NOTE]
 > The MTRRs of APs will be synchronised by the bootloader to match
@@ -1013,10 +1020,6 @@ struct limine_mp_response {
 * `cpus` - Pointer to an array of `cpu_count` pointers to
 `struct limine_mp_info` structures.
 
-> [!NOTE]
-> The presence of this request will prompt the bootloader to bootstrap
-> the secondary processors. This will not be done if this request is not present.
-
 ```c
 struct limine_mp_info;
 
@@ -1061,10 +1064,6 @@ struct limine_mp_response {
 * `cpu_count` - How many CPUs are present. It includes the bootstrap processor.
 * `cpus` - Pointer to an array of `cpu_count` pointers to
 `struct limine_mp_info` structures.
-
-> [!NOTE]
-> The presence of this request will prompt the bootloader to bootstrap
-> the secondary processors. This will not be done if this request is not present.
 
 ```c
 struct limine_mp_info;
@@ -1115,9 +1114,13 @@ struct limine_riscv_bsp_hartid_response {
 ```
 
 * `bsp_hartid` - The Hart ID of the boot processor.
+
 > [!NOTE]
 > This request contains the same information as `limine_mp_response.bsp_hartid` from the
 > [MP feature](#mp-multiprocessor-feature), but doesn't boot up other APs.
+
+> [!NOTE]
+> On non-RISC-V platforms, no response will be provided.
 
 ### Memory Map Feature
 
@@ -1226,7 +1229,9 @@ other entries.
 
 #### EFI Memory Map Entry Type to Limine Memory Map Type
 
-EFI memory map entry types are converted to Limine memory map type as follows:
+In case the booting firmware is EFI, the following EFI memory map entry types to Limine memory map type
+are guaranteed to be upheld:
+:
 * EfiLoaderCode, EfiLoaderData -> `BOOTLOADER_RECLAIMABLE`
 * EfiBootServicesCode, EfiBootServicesData -> `BOOTLOADER_RECLAIMABLE`
 * EfiACPIReclaimMemory -> `ACPI_RECLAIMABLE`
@@ -1288,8 +1293,8 @@ struct limine_executable_file_response {
 
 * `executable_file` - Pointer to the `struct limine_file` structure (see
 [File Structure](#file-structure) below).
-for the executable file. The `string` member is equivalent to the `cmdline` value as reported by
-the [Executable Command Line feature](#executable-command-line-feature).
+for the executable file. The `string` member is a pointer to the same memory as the `cmdline` value
+as reported by the [Executable Command Line feature](#executable-command-line-feature).
 
 ### Module Feature
 
@@ -1356,6 +1361,9 @@ struct limine_module_response {
 * `modules` - Pointer to an array of `module_count` pointers to
 `struct limine_file` structures (see [File Structure](#file-structure) below).
 
+> [!NOTE]
+> If no modules are available, no response will be provided.
+
 ### RSDP Feature
 
 ID:
@@ -1381,6 +1389,9 @@ struct limine_rsdp_response {
 ```
 
 * `address` - Address of the RSDP table. Physical for [base revision 3](#base-revision-3) **only**.
+
+> [!NOTE]
+> If ACPI is not available, no response will not be provided.
 
 ### SMBIOS Feature
 
@@ -1410,6 +1421,10 @@ struct limine_smbios_response {
 * `entry_32` - Address of the 32-bit SMBIOS entry point. NULL if not present. Physical for [base revision](#base-revisions) >= 3.
 * `entry_64` - Address of the 64-bit SMBIOS entry point. NULL if not present. Physical for [base revision](#base-revisions) >= 3.
 
+> [!NOTE]
+> If SMBIOS is not available (that being neither a 32, nor a 64-bit entry points are available), no
+> response will be provided.
+
 ### EFI System Table Feature
 
 ID:
@@ -1435,6 +1450,9 @@ struct limine_efi_system_table_response {
 ```
 
 * `address` - Address of EFI system table. Physical for [base revision](#base-revisions) >= 3.
+
+> [!NOTE]
+> If EFI is not available, no response will be provided.
 
 ### EFI Memory Map Feature
 
@@ -1469,8 +1487,11 @@ struct limine_efi_memmap_response {
 * `desc_version` - Version of EFI memory map descriptors.
 
 > [!NOTE]
-> This feature provides data suitable for use with RT->SetVirtualAddressMap(), provided
+> This feature provides data suitable for use with `RT->SetVirtualAddressMap()`, provided
 > [HHDM](#hhdm-higher-half-direct-map-feature) offset is subtracted from `memmap`.
+
+> [!NOTE]
+> If EFI is not available, no reponse will be provided.
 
 ### Date at Boot Feature
 
@@ -1553,7 +1574,7 @@ struct limine_dtb_response {
 * `dtb_ptr` - Virtual (HHDM) pointer to the device tree blob, in [bootloader reclaimable memory](#memory-map-feature).
 
 > [!NOTE]
-> If the DTB cannot be found, the response will *not* be generated.
+> If no DTB is available, no response will be provided.
 
 > [!NOTE]
 > Information contained in the `/chosen` node may not reflect the information
