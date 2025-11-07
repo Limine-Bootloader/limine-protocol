@@ -845,27 +845,22 @@ struct limine_paging_mode_request {
 };
 ```
 
-The `mode`, `max_mode`, and `min_mode` fields take architecture-specific values
-as described below.
-
-`mode` is the preferred paging mode by the OS; the bootloader should always aim
+* `mode` - the preferred paging mode by the OS; the bootloader should always aim
 to pick this mode unless unavailable or overridden by the user in the bootloader's
 configuration file.
-
-`max_mode` is the highest paging mode in numerical order that the OS supports. The
+* `max_mode` - the highest paging mode in numerical order that the OS supports. The
 bootloader will refuse to boot the OS if no paging modes of this type or lower
 (but equal or greater than `min_mode`) are available.
-
-`min_mode` is the lowest paging mode in numerical order that the OS supports. The
+* `min_mode` - the lowest paging mode in numerical order that the OS supports. The
 bootloader will refuse to boot the OS if no paging modes of this type or greater
 (but equal or lower than `max_mode`) are available.
 
 If no Paging Mode Request is provided, the values of `mode`, `max_mode`, and `min_mode`
-that the bootloader assumes are `LIMINE_PAGING_MODE_DEFAULT`, `LIMINE_PAGING_MODE_DEFAULT`,
-and `LIMINE_PAGING_MODE_MIN`, respectively.
+that the bootloader assumes are `LIMINE_PAGING_MODE_<arch>_DEFAULT`,
+`LIMINE_PAGING_MODE_<arch>_DEFAULT`, and `LIMINE_PAGING_MODE_<arch>_MIN`, respectively.
 
 If request revision 0 is used, the values of `max_mode` and `min_mode` that the
-bootloader assumes are the value of `mode` and `LIMINE_PAGING_MODE_MIN`,
+bootloader assumes are the value of `mode` and `LIMINE_PAGING_MODE_<arch>_MIN`,
 respectively.
 
 Response:
@@ -877,8 +872,6 @@ struct limine_paging_mode_response {
 ```
 
 The response indicates which paging mode was actually enabled by the bootloader.
-Executables must be prepared to handle cases where the provided paging mode is
-not supported.
 
 #### x86-64
 
@@ -887,8 +880,8 @@ Values assignable to `mode`, `max_mode`, and `min_mode`:
 #define LIMINE_PAGING_MODE_X86_64_4LVL 0
 #define LIMINE_PAGING_MODE_X86_64_5LVL 1
 
-#define LIMINE_PAGING_MODE_DEFAULT LIMINE_PAGING_MODE_X86_64_4LVL
-#define LIMINE_PAGING_MODE_MIN LIMINE_PAGING_MODE_X86_64_4LVL
+#define LIMINE_PAGING_MODE_X86_64_DEFAULT LIMINE_PAGING_MODE_X86_64_4LVL
+#define LIMINE_PAGING_MODE_X86_64_MIN LIMINE_PAGING_MODE_X86_64_4LVL
 ```
 
 #### aarch64
@@ -898,8 +891,8 @@ Values assignable to `mode`, `max_mode`, and `min_mode`:
 #define LIMINE_PAGING_MODE_AARCH64_4LVL 0
 #define LIMINE_PAGING_MODE_AARCH64_5LVL 1
 
-#define LIMINE_PAGING_MODE_DEFAULT LIMINE_PAGING_MODE_AARCH64_4LVL
-#define LIMINE_PAGING_MODE_MIN LIMINE_PAGING_MODE_AARCH64_4LVL
+#define LIMINE_PAGING_MODE_AARCH64_DEFAULT LIMINE_PAGING_MODE_AARCH64_4LVL
+#define LIMINE_PAGING_MODE_AARCH64_MIN LIMINE_PAGING_MODE_AARCH64_4LVL
 ```
 
 #### riscv64
@@ -910,18 +903,18 @@ Values assignable to `mode`, `max_mode`, and `min_mode`:
 #define LIMINE_PAGING_MODE_RISCV_SV48 1
 #define LIMINE_PAGING_MODE_RISCV_SV57 2
 
-#define LIMINE_PAGING_MODE_DEFAULT LIMINE_PAGING_MODE_RISCV_SV48
-#define LIMINE_PAGING_MODE_MIN LIMINE_PAGING_MODE_RISCV_SV39
+#define LIMINE_PAGING_MODE_RISCV_DEFAULT LIMINE_PAGING_MODE_RISCV_SV48
+#define LIMINE_PAGING_MODE_RISCV_MIN LIMINE_PAGING_MODE_RISCV_SV39
 ```
 
 #### loongarch64
 
 Values assignable to `mode`, `max_mode`, and `min_mode`:
 ```c
-#define LIMINE_PAGING_MODE_LOONGARCH64_4LVL 0
+#define LIMINE_PAGING_MODE_LOONGARCH_4LVL 0
 
-#define LIMINE_PAGING_MODE_DEFAULT LIMINE_PAGING_MODE_LOONGARCH64_4LVL
-#define LIMINE_PAGING_MODE_MIN LIMINE_PAGING_MODE_LOONGARCH64_4LVL
+#define LIMINE_PAGING_MODE_LOONGARCH_DEFAULT LIMINE_PAGING_MODE_LOONGARCH_4LVL
+#define LIMINE_PAGING_MODE_LOONGARCH_MIN LIMINE_PAGING_MODE_LOONGARCH_4LVL
 ```
 
 ### MP (Multiprocessor) Feature
