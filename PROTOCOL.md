@@ -296,6 +296,10 @@ Alongside the loaded executable, the bootloader will set up memory mappings as s
 Where "HHDM start" is returned by the [Higher Half Direct Map feature](#hhdm-higher-half-direct-map-feature).
 These mappings are supervisor, read, write, execute (-rwx).
 
+When a memory map region is mapped to the Higher Half Direct Map, mappings will use a minimum page size
+of 4KiB; if a region's start or end address is not 4KiB aligned, the mappings will overshoot the region
+boundaries in order to align to 4KiB while also covering the entire region.
+
 For [base revision 0](#base-revision-0), the above-4GiB identity and HHDM mappings cover any memory
 map region.
 
@@ -926,6 +930,8 @@ ID:
 
 Request:
 ```c
+#define LIMINE_MP_REQUEST_X86_64_X2APIC (1 << 0)
+
 struct limine_mp_request {
     uint64_t id[4];
     uint64_t revision;
@@ -934,7 +940,7 @@ struct limine_mp_request {
 };
 ```
 
-* `flags` - Bit 0: Enable X2APIC, if possible. (x86-64 only)
+* `flags` - Bit 0: Enable x2APIC, if possible. (x86-64 only)
 
 > [!NOTE]
 > The presence of this request will prompt the bootloader to bootstrap
@@ -949,6 +955,8 @@ struct limine_mp_request {
 Response:
 
 ```c
+#define LIMINE_MP_RESPONSE_X86_64_X2APIC (1 << 0)
+
 struct limine_mp_response {
     uint64_t revision;
     uint32_t flags;
@@ -958,7 +966,7 @@ struct limine_mp_response {
 };
 ```
 
-* `flags` - Bit 0: X2APIC has been enabled.
+* `flags` - Bit 0: x2APIC has been enabled.
 * `bsp_lapic_id` - The Local APIC ID of the bootstrap processor.
 * `cpu_count` - How many CPUs are present. It includes the bootstrap processor.
 * `cpus` - Pointer to an array of `cpu_count` pointers to

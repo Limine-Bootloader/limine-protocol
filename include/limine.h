@@ -17,11 +17,11 @@
 #ifndef LIMINE_H
 #define LIMINE_H 1
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdint.h>
 
 /* Misc */
 
@@ -254,7 +254,7 @@ typedef void (*limine_goto_address)(struct limine_mp_info *);
 
 #if defined (__x86_64__) || defined (__i386__)
 
-#define LIMINE_MP_X2APIC (1 << 0)
+#define LIMINE_MP_RESPONSE_X86_64_X2APIC (1 << 0)
 
 struct limine_mp_info {
     uint32_t processor_id;
@@ -323,6 +323,8 @@ struct limine_mp_response {
 #else
 #error Unknown architecture
 #endif
+
+#define LIMINE_MP_REQUEST_X86_64_X2APIC (1 << 0)
 
 struct limine_mp_request {
     uint64_t id[4];
