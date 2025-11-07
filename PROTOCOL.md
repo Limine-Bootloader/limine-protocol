@@ -85,7 +85,7 @@ to them, unless otherwise noted.
 All [responses](#response) and associated data structures are placed in
 [bootloader-reclaimable memory](#memory-map-feature) regions.
 
-The ABIs the Limine protocol uses and expects the application to comply with are as follows:
+The ABIs the Limine protocol uses and expects the executable to comply with are as follows:
   - SysV Itanium ABI for x86-64
   - AAPCS LP64 for aarch64
   - LP64 for riscv64
@@ -1035,8 +1035,8 @@ struct limine_mp_info {
 };
 ```
 
-* `processor_id` - ACPI Processor UID as specified by the MADT (always 0 on non-ACPI systems)
-* `mpidr` - MPIDR of the processor as specified by the MADT or device tree
+* `processor_id` - ACPI Processor UID as specified by the MADT (always 0 on non-ACPI systems).
+* `mpidr` - MPIDR of the processor as specified by the MADT or device tree.
 * `goto_address` - An atomic write to this field causes the parked CPU to
 jump to the written address, on a 64KiB (or [Stack Size feature](#stack-size-feature) size) stack. A pointer to the
 `struct limine_mp_info` structure of the CPU is passed in `X0`. Other than
@@ -1230,8 +1230,8 @@ other entries.
 #### EFI Memory Map Entry Type to Limine Memory Map Type
 
 In case the booting firmware is EFI, the following EFI memory map entry types to Limine memory map type
-are guaranteed to be upheld:
-:
+are guaranteed to be upheld, unless overridden by any previous rules:
+
 * EfiLoaderCode, EfiLoaderData -> `BOOTLOADER_RECLAIMABLE`
 * EfiBootServicesCode, EfiBootServicesData -> `BOOTLOADER_RECLAIMABLE`
 * EfiACPIReclaimMemory -> `ACPI_RECLAIMABLE`
@@ -1491,7 +1491,7 @@ struct limine_efi_memmap_response {
 > [HHDM](#hhdm-higher-half-direct-map-feature) offset is subtracted from `memmap`.
 
 > [!NOTE]
-> If EFI is not available, no reponse will be provided.
+> If EFI is not available, no response will be provided.
 
 ### Date at Boot Feature
 
