@@ -86,12 +86,13 @@ All [responses](#response) and associated data structures are placed in
 [bootloader-reclaimable memory](#memory-map-feature) regions.
 
 The ABIs the Limine protocol uses and expects the executable to comply with are as follows:
-  - SysV ABI for x86-64
-  - AAPCS LP64 for aarch64
-  - LP64 for riscv64
-  - LP64S for loongarch64
+  - x86-64: System V ABI without FP/SIMD
+  - aarch64: AAPCS64 without FP/SIMD
+  - riscv64: LP64 (soft-float)
+  - loongarch64: LP64S (soft-float)
 
-All of these are with FPU/SIMD disabled (sometimes also referred to as Soft-Float).
+The executable can internally use FP/SIMD, but when interfacing with the Limine boot
+protocol, the above are the expected ABIs.
 
 ## Requests Delimiters
 
