@@ -86,7 +86,7 @@ All [responses](#response) and associated data structures are placed in
 [bootloader-reclaimable memory](#memory-map-feature) regions.
 
 The ABIs the Limine protocol uses and expects the executable to comply with are as follows:
-  - SysV Itanium ABI for x86-64
+  - SysV ABI for x86-64
   - AAPCS LP64 for aarch64
   - LP64 for riscv64
   - LP64S for loongarch64
