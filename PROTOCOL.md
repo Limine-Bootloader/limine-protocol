@@ -277,9 +277,12 @@ This is the default base revision used if no base revision tag is provided.
 - EFI Runtime Services code and data memory regions (`EfiRuntimeServicesCode`,
     `EfiRuntimeServicesData`) are reported as `LIMINE_MEMMAP_RESERVED_MAPPED`
     [memory map](#memory-map-feature) entries (instead of `LIMINE_MEMMAP_RESERVED`).
-    This includes the EFI system table and all data it references that remains valid after
-    `ExitBootServices` (firmware vendor string, runtime services table, configuration table
-    array, and runtime services code).
+- The EFI system table and the data it references that remains valid after
+    `ExitBootServices` (runtime services table, configuration table array, and firmware
+    vendor string) are guaranteed to be mapped as `LIMINE_MEMMAP_RESERVED_MAPPED`
+    [memory map](#memory-map-feature) entries. Note: the UEFI specification does not
+    guarantee these reside within `EfiRuntimeServicesCode` or `EfiRuntimeServicesData`
+    memory regions, so they are explicitly mapped by the bootloader.
 - [EFI system table](#efi-system-table-feature) address is returned as **virtual**
     **([HHDM](#hhdm-higher-half-direct-map-feature))** again (physical only in
     [base revision 3](#base-revision-3) and [base revision 4](#base-revision-4)).
@@ -1259,7 +1262,8 @@ feature](#framebuffer-feature) for that.
 of the address space containing the ACPI tables as described by the [Memory Layout at Entry](#memory-layout-at-entry)
 section, if the firmware did not already map them within either an ACPI reclaimable
 or an ACPI NVS region. For [base revision 5](#base-revision-5) or greater, these entries additionally
-contain SMBIOS tables and EFI Runtime Services code and data.
+contain SMBIOS tables, EFI Runtime Services code and data, and the EFI system table along
+with the data it references (see [Base Revision 5](#base-revision-5) for details).
 
 For [base revisions](#base-revisions) <= 2, memory between 0 and 0x1000 is never marked as usable memory.
 
