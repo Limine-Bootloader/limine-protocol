@@ -248,13 +248,14 @@ This is the default base revision used if no base revision tag is provided.
 **Changes from Base Revision 3**:
 - [HHDM](#hhdm-higher-half-direct-map-feature) additionally maps the following
     [memory map regions](#memory-map-feature):
-  - ACPI tables
+  - Reserved (Mapped)
   - ACPI reclaimable
   - ACPI NVS
 - Added new [memory map](#memory-map-feature) region type: `LIMINE_MEMMAP_RESERVED_MAPPED`.
 - Guaranteed that ACPI tables (RSDP, RSDT, XSDT, all tables pointed to by RSDT and XSDT,
-    FACS, X_FACS, DSDT, X_DSDT) are mapped within any of the ACPI
-    [memory map regions](#memory-map-feature) or `LIMINE_MEMMAP_RESERVED_MAPPED`.
+    FACS, X_FACS, DSDT, X_DSDT) are mapped within `LIMINE_MEMMAP_ACPI_RECLAIMABLE`,
+    `LIMINE_MEMMAP_ACPI_NVS`, or `LIMINE_MEMMAP_RESERVED_MAPPED`
+    [memory map regions](#memory-map-feature).
 - [RSDP](#rsdp-feature) address is returned as **virtual**
     **([HHDM](#hhdm-higher-half-direct-map-feature))** again (physical only in
     [base revision 3](#base-revision-3)).
@@ -1264,7 +1265,8 @@ For [base revisions](#base-revisions) <= 2, memory between 0 and 0x1000 is never
 
 For [base revision 4](#base-revision-4) or greater, ACPI tables (that being RSDP, RSDT, XSDT, all
 tables pointed to by RSDT and XSDT, FACS, X_FACS, DSDT, X_DSDT - if present) are guaranteed
-to be mapped within any of the 3 ACPI memory map regions.
+to be mapped within `LIMINE_MEMMAP_ACPI_RECLAIMABLE`, `LIMINE_MEMMAP_ACPI_NVS`, or
+`LIMINE_MEMMAP_RESERVED_MAPPED` regions.
 
 The entries are guaranteed to be sorted by base address, lowest to highest.
 
