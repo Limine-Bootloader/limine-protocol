@@ -28,6 +28,7 @@ languages.
   - [Base Revision 2](#base-revision-2)
   - [Base Revision 3](#base-revision-3)
   - [Base Revision 4](#base-revision-4)
+  - [Base Revision 5](#base-revision-5)
 - [Memory Layout at Entry](#memory-layout-at-entry)
 - [Caching](#caching)
   - [x86-64](#x86-64)
@@ -132,8 +133,8 @@ contained inside said section.
 
 ## Base Revisions
 
-The Limine boot protocol comes in several base revisions; so far, 5
-base revisions are specified: [0 through 4](#base-revision-changes-summary).
+The Limine boot protocol comes in several base revisions; so far, 6
+base revisions are specified: [0 through 5](#base-revision-changes-summary).
 
 Base revisions change certain behaviours of the Limine boot protocol
 outside any specific feature. The specifics are going to be described as
@@ -235,8 +236,8 @@ This is the default base revision used if no base revision tag is provided.
 - Memory between 0 and 0x1000 **can now** be marked as usable in the
     [memory map](#memory-map-feature).
 - [RSDP](#rsdp-feature) address is returned as **physical** (base revision 3 **only**).
-- [SMBIOS](#smbios-feature) entry point addresses are returned as **physical**.
-- [EFI system table](#efi-system-table-feature) address is returned as **physical**.
+- [SMBIOS](#smbios-feature) entry point addresses are returned as **physical** (base revisions 3 and 4 **only**).
+- [EFI system table](#efi-system-table-feature) address is returned as **physical** (base revisions 3 and 4 **only**).
 - **Bootloader requirement**: Must support loading executables requesting higher
     unsupported revisions with at least base revision 3.
 - **Bootloader requirement**: Must set the 2nd component of the base revision tag to the
@@ -250,10 +251,10 @@ This is the default base revision used if no base revision tag is provided.
   - ACPI tables
   - ACPI reclaimable
   - ACPI NVS
-- Added new [memory map](#memory-map-feature) region type: `LIMINE_MEMMAP_ACPI_TABLES`.
+- Added new [memory map](#memory-map-feature) region type: `LIMINE_MEMMAP_RESERVED_MAPPED`.
 - Guaranteed that ACPI tables (RSDP, RSDT, XSDT, all tables pointed to by RSDT and XSDT,
     FACS, X_FACS, DSDT, X_DSDT) are mapped within any of the ACPI
-    [memory map regions](#memory-map-feature).
+    [memory map regions](#memory-map-feature) or `LIMINE_MEMMAP_RESERVED_MAPPED`.
 - [RSDP](#rsdp-feature) address is returned as **virtual**
     **([HHDM](#hhdm-higher-half-direct-map-feature))** again (physical only in
     [base revision 3](#base-revision-3)).
@@ -263,6 +264,30 @@ This is the default base revision used if no base revision tag is provided.
   - `MAIR_EL1.Attr1` is guaranteed to be the framebuffer's correct caching type.
   - All other `MAIR_EL1` entries are guaranteed unused unless specified by a request
       (no such requests are specified yet).
+
+### Base Revision 5
+
+**Changes from Base Revision 4**:
+- Guaranteed that SMBIOS tables (32-bit and 64-bit entry points and their structure tables)
+    are mapped as `LIMINE_MEMMAP_RESERVED_MAPPED` [memory map](#memory-map-feature) entries.
+- [SMBIOS](#smbios-feature) addresses are returned as **virtual**
+    **([HHDM](#hhdm-higher-half-direct-map-feature))** again (physical only in
+    [base revision 3](#base-revision-3) and [base revision 4](#base-revision-4)).
+- EFI Runtime Services code and data memory regions (`EfiRuntimeServicesCode`,
+    `EfiRuntimeServicesData`) are reported as `LIMINE_MEMMAP_RESERVED_MAPPED`
+    [memory map](#memory-map-feature) entries (instead of `LIMINE_MEMMAP_RESERVED`).
+    This includes the EFI system table and all data it references that remains valid after
+    `ExitBootServices` (firmware vendor string, runtime services table, configuration table
+    array, and runtime services code).
+- [EFI system table](#efi-system-table-feature) address is returned as **virtual**
+    **([HHDM](#hhdm-higher-half-direct-map-feature))** again (physical only in
+    [base revision 3](#base-revision-3) and [base revision 4](#base-revision-4)).
+- **x86**: I/O APIC redirection table entries with NMI and ExtINT delivery modes
+    are also masked.
+- **x86**: Any IOMMUs (Intel VT-d, AMD-Vi) have DMA translation and interrupt
+    remapping disabled.
+- **x86**: The local APIC is initialised to a well-defined state on all processors
+    (BSP and APs). See [x86 machine state](#x86) for details.
 
 ## Memory Layout at Entry
 
@@ -320,7 +345,7 @@ of complying types are mapped in.
 
 For [base revision 4](#base-revision-4) or greater, the following regions are also mapped in addition
 to those mapped by [base revision 3](#base-revision-3):
- - ACPI tables
+ - Reserved (Mapped)
  - ACPI reclaimable
  - ACPI NVS
 
@@ -432,8 +457,29 @@ If 5-level paging is requested and available, then 5-level paging is enabled
 
 The A20 gate is opened.
 
-Legacy PIC (if available) and IO APIC IRQs (only those with delivery mode fixed
-(0b000) or lowest priority (0b001)) are all masked.
+Legacy PIC IRQs (if PIC is available) are masked. I/O APIC redirection table
+entries with Fixed (0b000) or Lowest Priority (0b001) delivery mode are masked.
+For [base revision 5](#base-revision-5) or greater, I/O APIC redirection table
+entries with NMI (0b100) and ExtINT (0b111) delivery mode are also masked.
+
+For [base revision 5](#base-revision-5) or greater, any IOMMUs (Intel VT-d, AMD-Vi)
+have DMA translation and interrupt remapping disabled.
+
+For [base revision 5](#base-revision-5) or greater, the local APIC on each processor
+(BSP and APs) is initialised as follows:
+
+- The local APIC is enabled (`IA32_APIC_BASE` bit 11) and software-enabled (SVR bit 8).
+- The Spurious Interrupt Vector Register is set to `0x1FF`.
+- The Task Priority Register is set to 0.
+- All LVT entries (Timer, Thermal Monitor (if present), Performance Counter
+  (if present), CMCI (if present), Error) are masked.
+- LINT0 and LINT1 are configured according to MADT Local APIC NMI (type 4) and
+  Local x2APIC NMI (type 0x0A) entries, with polarity and trigger mode derived from
+  the MPS INTI flags. All LINT entries are masked.
+- On the BSP, LINT0 defaults to ExtINT delivery mode (masked) per the Intel SDM,
+  unless overridden by a MADT NMI entry.
+- LINT entries not referenced by any MADT NMI entry (and not the BSP LINT0 ExtINT
+  default) are masked with no delivery mode.
 
 If booted by EFI, boot services are exited.
 
@@ -1163,7 +1209,7 @@ struct limine_memmap_response {
 #define LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE 5
 #define LIMINE_MEMMAP_EXECUTABLE_AND_MODULES 6
 #define LIMINE_MEMMAP_FRAMEBUFFER            7
-#define LIMINE_MEMMAP_ACPI_TABLES            8
+#define LIMINE_MEMMAP_RESERVED_MAPPED        8
 
 struct limine_memmap_entry {
     uint64_t base;
@@ -1208,10 +1254,11 @@ memory-mapped framebuffers. These entries exist for illustrative purposes only, 
 not to be used to acquire the address of any framebuffer. One must use the [Framebuffer
 feature](#framebuffer-feature) for that.
 
-* `LIMINE_MEMMAP_ACPI_TABLES` ([base revision 4](#base-revision-4) or greater) entries represent regions
+* `LIMINE_MEMMAP_RESERVED_MAPPED` ([base revision 4](#base-revision-4) or greater) entries represent regions
 of the address space containing the ACPI tables as described by the [Memory Layout at Entry](#memory-layout-at-entry)
 section, if the firmware did not already map them within either an ACPI reclaimable
-or an ACPI NVS region.
+or an ACPI NVS region. For [base revision 5](#base-revision-5) or greater, these entries additionally
+contain SMBIOS tables and EFI Runtime Services code and data.
 
 For [base revisions](#base-revisions) <= 2, memory between 0 and 0x1000 is never marked as usable memory.
 
@@ -1236,6 +1283,7 @@ are guaranteed to be upheld, unless overridden by any previous rules:
 
 * EfiLoaderCode, EfiLoaderData -> `BOOTLOADER_RECLAIMABLE`
 * EfiBootServicesCode, EfiBootServicesData -> `BOOTLOADER_RECLAIMABLE`
+* EfiRuntimeServicesCode, EfiRuntimeServicesData -> `RESERVED_MAPPED` for [base revision](#base-revisions) >= 5, else, `RESERVED`.
 * EfiACPIReclaimMemory -> `ACPI_RECLAIMABLE`
 * EfiACPIMemoryNVS -> `ACPI_NVS`
 * EfiConventionalMemory -> `USABLE`
@@ -1415,13 +1463,13 @@ Response:
 ```c
 struct limine_smbios_response {
     uint64_t revision;
-    uint64_t entry_32;
-    uint64_t entry_64;
+    void *entry_32;
+    void *entry_64;
 };
 ```
 
-* `entry_32` - Address of the 32-bit SMBIOS entry point. NULL if not present. Physical for [base revision](#base-revisions) >= 3.
-* `entry_64` - Address of the 64-bit SMBIOS entry point. NULL if not present. Physical for [base revision](#base-revisions) >= 3.
+* `entry_32` - Address of the 32-bit SMBIOS entry point. NULL if not present. Physical for [base revision](#base-revisions) 3 and 4 only.
+* `entry_64` - Address of the 64-bit SMBIOS entry point. NULL if not present. Physical for [base revision](#base-revisions) 3 and 4 only.
 
 > [!NOTE]
 > If SMBIOS is not available (that being neither a 32, nor a 64-bit entry points are available), no
@@ -1447,11 +1495,11 @@ Response:
 ```c
 struct limine_efi_system_table_response {
     uint64_t revision;
-    uint64_t address;
+    void *address;
 };
 ```
 
-* `address` - Address of EFI system table. Physical for [base revision](#base-revisions) >= 3.
+* `address` - Address of EFI system table. Physical for [base revision](#base-revisions) 3 and 4 only.
 
 > [!NOTE]
 > If EFI is not available, no response will be provided.

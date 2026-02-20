@@ -345,7 +345,7 @@ struct limine_mp_request {
 #define LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE 5
 #define LIMINE_MEMMAP_EXECUTABLE_AND_MODULES 6
 #define LIMINE_MEMMAP_FRAMEBUFFER            7
-#define LIMINE_MEMMAP_ACPI_TABLES            8
+#define LIMINE_MEMMAP_RESERVED_MAPPED        8
 
 struct limine_memmap_entry {
     uint64_t base;
@@ -447,8 +447,8 @@ struct limine_rsdp_request {
 
 struct limine_smbios_response {
     uint64_t revision;
-    uint64_t entry_32;
-    uint64_t entry_64;
+    LIMINE_PTR(void *) entry_32;
+    LIMINE_PTR(void *) entry_64;
 };
 
 struct limine_smbios_request {
@@ -463,7 +463,7 @@ struct limine_smbios_request {
 
 struct limine_efi_system_table_response {
     uint64_t revision;
-    uint64_t address;
+    LIMINE_PTR(void *) address;
 };
 
 struct limine_efi_system_table_request {
