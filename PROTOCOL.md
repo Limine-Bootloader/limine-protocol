@@ -1682,6 +1682,39 @@ past.
 > system reset, due to implementation or platform restrictions. `reset_usec` will usually be 0 or a
 > value near zero, but may be any value relative to any point in the past.
 
+### x86-64 Keep IOMMU Feature
+
+ID:
+```c
+#define LIMINE_X86_64_KEEP_IOMMU_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x8ebaabe51f490179, 0x2aa86a59ffb4ab0f }
+```
+
+Request:
+```c
+struct limine_x86_64_keep_iommu_request {
+    uint64_t id[4];
+    uint64_t revision;
+    struct limine_x86_64_keep_iommu_response *response;
+};
+```
+
+Response:
+```c
+struct limine_x86_64_keep_iommu_response {
+    uint64_t revision;
+};
+```
+
+If this feature is requested, the bootloader will not disable IOMMUs (Intel VT-d, AMD-Vi)
+that were enabled by the firmware. This is intended for security-conscious kernels that wish
+to preserve DMA protection set up by firmware.
+
+If this feature is not requested, the bootloader will disable any active IOMMUs before
+handing control to the executable.
+
+> [!NOTE]
+> On non-x86 platforms, no response will be provided.
+
 ## File Structure
 
 ```c
