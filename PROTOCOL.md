@@ -286,6 +286,8 @@ This is the default base revision used if no base revision tag is provided.
 - [EFI system table](#efi-system-table-feature) address is returned as **virtual**
     **([HHDM](#hhdm-higher-half-direct-map-feature))** again (physical only in
     [base revision 3](#base-revision-3) and [base revision 4](#base-revision-4)).
+- **x86**: Extra control registers and descriptor table registers have more
+    strictly defined states. See [x86-64 machine state](#x86-64-1) for details.
 - **x86**: I/O APIC redirection table entries with NMI and ExtINT delivery modes
     are also masked.
 - **x86**: Any IOMMUs (Intel VT-d, AMD-Vi) have DMA translation and interrupt
@@ -458,6 +460,17 @@ WP is enabled (`cr0`), LME is enabled (`EFER`).
 NX is enabled (`EFER`) if available.
 If 5-level paging is requested and available, then 5-level paging is enabled
 (LA57 bit in `cr4`).
+
+For [base revision 5](#base-revision-5) or greater, the following machine
+state is also guaranteed:
+
+- ET is enabled (`cr0`). All other `cr0`, `cr4`, and `EFER` bits beyond
+  those specified above are cleared.
+- `RFLAGS` is set to `0x2`.
+- The task register is loaded with base 0 and limit 0. Executable must load
+  its own TSS.
+- The LDTR is loaded with the NULL selector. No LDT is present.
+- The IDTR is loaded with base 0 and limit 0. Executable must load its own.
 
 The A20 gate is opened.
 
