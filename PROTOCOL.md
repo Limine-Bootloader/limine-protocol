@@ -474,10 +474,12 @@ state is also guaranteed:
 
 The A20 gate is opened.
 
-Legacy PIC IRQs (if PIC is available) are masked. I/O APIC redirection table
-entries with Fixed (0b000) or Lowest Priority (0b001) delivery mode are masked.
-For [base revision 5](#base-revision-5) or greater, I/O APIC redirection table
-entries with NMI (0b100) and ExtINT (0b111) delivery mode are also masked.
+Legacy PICs (if available) are reinitialised and all IRQs are masked.
+
+I/O APIC redirection table entries with Fixed (0b000) or Lowest Priority (0b001)
+delivery mode are masked. For [base revision 5](#base-revision-5) or greater,
+entries with NMI (0b100) or ExtINT (0b111) delivery mode are also masked. Entries
+with other delivery modes are otherwise never modified.
 
 For [base revision 5](#base-revision-5) or greater, any IOMMUs (Intel VT-d, AMD-Vi)
 have DMA translation and interrupt remapping disabled.
@@ -488,15 +490,17 @@ For [base revision 5](#base-revision-5) or greater, the local APIC on each proce
 - The local APIC is enabled (`IA32_APIC_BASE` bit 11) and software-enabled (SVR bit 8).
 - The Spurious Interrupt Vector Register is set to `0x1FF`.
 - The Task Priority Register is set to 0.
-- All LVT entries (Timer, Thermal Monitor (if present), Performance Counter
-  (if present), CMCI (if present), Error) are masked.
-- LINT0 and LINT1 are configured according to MADT Local APIC NMI (type 4) and
-  Local x2APIC NMI (type 0x0A) entries, with polarity and trigger mode derived from
-  the MPS INTI flags. All LINT entries are masked.
-- On the BSP, LINT0 defaults to ExtINT delivery mode (masked) per the Intel SDM,
-  unless overridden by a MADT NMI entry.
-- LINT entries not referenced by any MADT NMI entry (and not the BSP LINT0 ExtINT
-  default) are masked with no delivery mode.
+- All LVT entries (LINT0 and LINT1 (if no MADT override, see below), Timer, Thermal
+  Monitor (if present), Performance Counter (if present), CMCI (if present), Error)
+  whose delivery mode is Fixed (0b000), Lowest Priority (0b001), NMI (0b100), or
+  ExtINT (0b111) have their mask bit set. The rest of the entry is left unchanged.
+  Entries with other delivery modes are otherwise never modified.
+- If MADT Local APIC NMI (type 4) or Local x2APIC NMI (type 0x0A) entries are
+  present, the corresponding LINT entry is configured with NMI delivery mode,
+  polarity and trigger mode derived from the MPS INTI flags, and masked. This only
+  applies if the original LINT entry's delivery mode is Fixed (0b000), Lowest
+  Priority (0b001), NMI (0b100), or ExtINT (0b111). Entries with other delivery
+  modes are otherwise never modified.
 
 If booted by EFI, boot services are exited.
 
