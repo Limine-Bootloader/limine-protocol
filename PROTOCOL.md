@@ -479,8 +479,9 @@ Legacy PICs (if available) are reinitialised and all IRQs are masked.
 For each existing I/O APIC, its redirection table entries with Fixed (0b000)
 or Lowest Priority (0b001) delivery mode are masked.
 For [base revision 5](#base-revision-5) or greater, entries with NMI (0b100)
-or ExtINT (0b111) delivery mode are also masked. Entries with other delivery modes
-are left as set by firmware.
+or ExtINT (0b111) delivery mode are also masked. The rest of the entries beyond the
+mask flag is left as set by firmware. Entries with other delivery modes are entirely
+left as set by firmware.
 
 For [base revision 5](#base-revision-5) or greater, any IOMMUs (Intel VT-d, AMD-Vi)
 have DMA translation and interrupt remapping disabled.
@@ -494,8 +495,9 @@ For [base revision 5](#base-revision-5) or greater, the local APIC on each proce
 - All LVT entries (LINT0 and LINT1 (if no MADT override, see below), Timer, Thermal
   Monitor (if present), Performance Counter (if present), CMCI (if present), Error)
   whose delivery mode is Fixed (0b000), Lowest Priority (0b001), NMI (0b100), or
-  ExtINT (0b111) have their mask bit set. The rest of the entry is left as set by
-  firmware. Entries with other delivery modes are entirely left as set by firmware.
+  ExtINT (0b111) have their mask bit set. The rest of the entry beyond the mask flag
+  is left as set by firmware. Entries with other delivery modes are entirely left as
+  set by firmware.
 - If MADT Local APIC NMI (type 4) or Local x2APIC NMI (type 0x0A) entries are
   present, the corresponding LINT entries are configured with NMI delivery mode,
   polarity and trigger mode derived from the MPS INTI flags, and masked. This only
