@@ -479,7 +479,7 @@ Legacy PICs (if available) are reinitialised and all IRQs are masked.
 I/O APIC redirection table entries with Fixed (0b000) or Lowest Priority (0b001)
 delivery mode are masked. For [base revision 5](#base-revision-5) or greater,
 entries with NMI (0b100) or ExtINT (0b111) delivery mode are also masked. Entries
-with other delivery modes are otherwise never modified.
+with other delivery modes are left as set by firmware.
 
 For [base revision 5](#base-revision-5) or greater, any IOMMUs (Intel VT-d, AMD-Vi)
 have DMA translation and interrupt remapping disabled.
@@ -493,14 +493,14 @@ For [base revision 5](#base-revision-5) or greater, the local APIC on each proce
 - All LVT entries (LINT0 and LINT1 (if no MADT override, see below), Timer, Thermal
   Monitor (if present), Performance Counter (if present), CMCI (if present), Error)
   whose delivery mode is Fixed (0b000), Lowest Priority (0b001), NMI (0b100), or
-  ExtINT (0b111) have their mask bit set. The rest of the entry is left unchanged.
-  Entries with other delivery modes are otherwise never modified.
+  ExtINT (0b111) have their mask bit set. The rest of the entry is left as set by
+  firmware. Entries with other delivery modes are entirely left as set by firmware.
 - If MADT Local APIC NMI (type 4) or Local x2APIC NMI (type 0x0A) entries are
-  present, the corresponding LINT entry is configured with NMI delivery mode,
+  present, the corresponding LINT entries are configured with NMI delivery mode,
   polarity and trigger mode derived from the MPS INTI flags, and masked. This only
-  applies if the original LINT entry's delivery mode is Fixed (0b000), Lowest
-  Priority (0b001), NMI (0b100), or ExtINT (0b111). Entries with other delivery
-  modes are otherwise never modified.
+  applies if the given LINT entry's original firmware-set delivery mode is Fixed (0b000),
+  Lowest Priority (0b001), NMI (0b100), or ExtINT (0b111). LINT entries with other
+  delivery modes are entirely left as set by firmware.
 
 If booted by EFI, boot services are exited.
 
