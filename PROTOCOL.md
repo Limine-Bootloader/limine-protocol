@@ -474,7 +474,7 @@ state is also guaranteed:
 
 The A20 gate is opened.
 
-Legacy PICs (if available) are reinitialised and all IRQs are masked.
+The legacy PICs (if available) have all IRQs masked.
 
 For each existing I/O APIC, its redirection table entries with Fixed (0b000)
 or Lowest Priority (0b001) delivery mode are masked.
