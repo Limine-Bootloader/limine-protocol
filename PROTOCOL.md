@@ -476,16 +476,17 @@ The A20 gate is opened.
 
 Legacy PICs (if available) are reinitialised and all IRQs are masked.
 
-I/O APIC redirection table entries with Fixed (0b000) or Lowest Priority (0b001)
-delivery mode are masked. For [base revision 5](#base-revision-5) or greater,
-entries with NMI (0b100) or ExtINT (0b111) delivery mode are also masked. Entries
-with other delivery modes are left as set by firmware.
+For each existing I/O APIC, its redirection table entries with Fixed (0b000)
+or Lowest Priority (0b001) delivery mode are masked.
+For [base revision 5](#base-revision-5) or greater, entries with NMI (0b100)
+or ExtINT (0b111) delivery mode are also masked. Entries with other delivery modes
+are left as set by firmware.
 
 For [base revision 5](#base-revision-5) or greater, any IOMMUs (Intel VT-d, AMD-Vi)
 have DMA translation and interrupt remapping disabled.
 
 For [base revision 5](#base-revision-5) or greater, the local APIC on each processor
-(BSP and APs) is initialised as follows:
+(BSP and APs), if available, is initialised as follows:
 
 - The local APIC is enabled (`IA32_APIC_BASE` bit 11) and software-enabled (SVR bit 8).
 - The Spurious Interrupt Vector Register is set to `0x1FF`.
