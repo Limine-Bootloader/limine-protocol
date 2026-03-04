@@ -293,7 +293,7 @@ This is the default base revision used if no base revision tag is provided.
 - **x86**: Any IOMMUs (Intel VT-d, AMD-Vi) have DMA translation and interrupt
     remapping disabled.
 - **x86**: The local APIC is initialised to a well-defined state on all processors
-    (BSP and APs). See [x86 machine state](#x86) for details.
+    (BSP and APs). See [x86-64 machine state](#x86-64-1) for details.
 
 ## Memory Layout at Entry
 
