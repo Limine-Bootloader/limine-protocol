@@ -455,22 +455,20 @@ The IDT is in an undefined state. Executable must load its own.
 IF flag, VM flag, and direction flag are cleared on entry. Other flags
 undefined.
 
-PG is enabled (`cr0`), PE is enabled (`cr0`), PAE is enabled (`cr4`),
-WP is enabled (`cr0`), LME is enabled (`EFER`).
-NX is enabled (`EFER`) if available.
+PE is enabled (`cr0`), ET is enabled (`cr0`), WP is enabled (`cr0`), PG is enabled (`cr0`),
+PAE is enabled (`cr4`), LME and LMA are enabled (`EFER`). NX is enabled (`EFER`)
+(if it is available).
 If 5-level paging is requested and available, then 5-level paging is enabled
 (LA57 bit in `cr4`).
 
 For [base revision 5](#base-revision-5) or greater, the following machine
 state is also guaranteed:
 
-- ET is enabled (`cr0`). All other `cr0`, `cr4`, and `EFER` bits beyond
-  those specified above are cleared.
-- `RFLAGS` is set to `0x2`.
-- The task register is loaded with base 0 and limit 0. Executable must load
-  its own TSS.
+- All other `cr0`, `cr4`, and `EFER` bits beyond those specified above are cleared.
+- `RFLAGS` is set to `0x00000002`.
+- The task register is loaded with base 0 and limit 0. No TSS is present.
 - The LDTR is loaded with the NULL selector. No LDT is present.
-- The IDTR is loaded with base 0 and limit 0. Executable must load its own.
+- The IDTR is loaded with base 0 and limit 0. No IDT is present.
 
 The A20 gate is opened.
 
