@@ -286,13 +286,13 @@ This is the default base revision used if no base revision tag is provided.
 - [EFI system table](#efi-system-table-feature) address is returned as **virtual**
     **([HHDM](#hhdm-higher-half-direct-map-feature))** again (physical only in
     [base revision 3](#base-revision-3) and [base revision 4](#base-revision-4)).
-- **x86**: Extra control registers and descriptor table registers have more
+- **x86-64**: Extra control registers and descriptor table registers have more
     strictly defined states. See [x86-64 machine state](#x86-64-1) for details.
-- **x86**: I/O APIC redirection table entries with NMI and ExtINT delivery modes
+- **x86-64**: I/O APIC redirection table entries with NMI and ExtINT delivery modes
     are also masked.
-- **x86**: Any IOMMUs (Intel VT-d, AMD-Vi) have DMA translation and interrupt
-    remapping disabled.
-- **x86**: The local APIC is initialised to a well-defined state on all processors
+- **x86-64**: All Intel VT-d IOMMUs have DMA translation and interrupt remapping disabled.
+    All AMD-Vi IOMMUs are disabled.
+- **x86-64**: The local APIC is initialised to a well-defined state on all processors
     (BSP and APs). See [x86-64 machine state](#x86-64-1) for details.
 
 ## Memory Layout at Entry
@@ -481,8 +481,9 @@ or ExtINT (0b111) delivery mode are also masked. The rest of the entries beyond 
 mask flag is left as set by firmware. Entries with other delivery modes are entirely
 left as set by firmware.
 
-For [base revision 5](#base-revision-5) or greater, any IOMMUs (Intel VT-d, AMD-Vi)
-have DMA translation and interrupt remapping disabled.
+For [base revision 5](#base-revision-5) or greater, all Intel VT-d IOMMUs have DMA
+translation and interrupt remapping disabled, and all AMD-Vi IOMMUs are disabled.
+This can be overridden by the [x86-64 "Keep IOMMU" feature](#x86-64-keep-iommu-feature).
 
 For [base revision 5](#base-revision-5) or greater, the local APIC on each processor
 (BSP and APs), if available, is initialised as follows:
@@ -1724,11 +1725,13 @@ struct limine_x86_64_keep_iommu_response {
 ```
 
 If this feature is requested, the bootloader will not disable IOMMUs (Intel VT-d, AMD-Vi)
-that were enabled by the firmware. This is intended for security-conscious kernels that wish
-to preserve DMA protection set up by firmware.
+that were left enabled by the firmware at hand-off. This is intended for security-conscious
+executables that wish to preserve DMA protection set up by firmware.
 
-If this feature is not requested, the bootloader will disable any active IOMMUs before
-handing control to the executable.
+If this feature is not requested, the bootloader reserves the right to disable any active
+IOMMUs before handing control to the executable. This is especially of note for base revisions
+5 and greater, where the bootloader is mandated to disable VT-d and AMD-Vi IOMMUs, unless
+this feature is requested.
 
 > [!NOTE]
 > On non-x86 platforms, no response will be provided.
