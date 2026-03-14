@@ -568,16 +568,16 @@ struct limine_bootloader_performance_request {
     LIMINE_PTR(struct limine_bootloader_performance_response *) response;
 };
 
-#define LIMINE_X86_64_KEEP_IOMMU_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x8ebaabe51f490179, 0x2aa86a59ffb4ab0f }
+#define LIMINE_KEEP_IOMMU_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x8ebaabe51f490179, 0x2aa86a59ffb4ab0f }
 
-struct limine_x86_64_keep_iommu_response {
+struct limine_keep_iommu_response {
     uint64_t revision;
 };
 
-struct limine_x86_64_keep_iommu_request {
+struct limine_keep_iommu_request {
     uint64_t id[4];
     uint64_t revision;
-    LIMINE_PTR(struct limine_x86_64_keep_iommu_response *) response;
+    LIMINE_PTR(struct limine_keep_iommu_response *) response;
 };
 
 #ifdef __cplusplus
