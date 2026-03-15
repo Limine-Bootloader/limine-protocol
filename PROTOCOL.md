@@ -51,6 +51,7 @@ languages.
   - [HHDM (Higher Half Direct Map)](#hhdm-higher-half-direct-map-feature)
   - [Framebuffer](#framebuffer-feature)
   - [Paging Mode](#paging-mode-feature)
+  - [aarch64 EL2](#aarch64-el2-feature)
   - [MP (Multiprocessor)](#mp-multiprocessor-feature)
   - [RISC-V BSP Hart ID](#risc-v-bsp-hart-id-feature)
   - [Memory Map](#memory-map-feature)
@@ -65,6 +66,7 @@ languages.
   - [Executable Address](#executable-address-feature)
   - [Device Tree Blob](#device-tree-blob-feature)
   - [Bootloader Performance](#bootloader-performance-feature)
+  - [Keep IOMMU](#keep-iommu-feature)
 - [File Structure](#file-structure)
 
 ---
