@@ -985,6 +985,63 @@ Values assignable to `mode`, `max_mode`, and `min_mode`:
 #define LIMINE_PAGING_MODE_LOONGARCH_MIN LIMINE_PAGING_MODE_LOONGARCH_4LVL
 ```
 
+### aarch64 EL2 Feature
+
+ID:
+```c
+#define LIMINE_AARCH64_EL2_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x4e5c9be65436c7aa, 0x81b90b8c04cbd935 }
+```
+
+Request:
+```c
+struct limine_aarch64_el2_request {
+    uint64_t id[4];
+    uint64_t revision;
+    struct limine_aarch64_el2_response *response;
+};
+```
+
+The presence of this request indicates that the executable supports being entered
+at EL2 with VHE (Virtualization Host Extensions). If the bootloader is running at
+EL2 and VHE is supported by the hardware, the bootloader will enter the executable
+at EL2 instead of dropping to EL1.
+
+If the bootloader is running at EL1, or VHE is not supported, the response pointer
+is left `NULL` and the executable is entered at EL1 as usual.
+
+Response:
+```c
+struct limine_aarch64_el2_response {
+    uint64_t revision;
+};
+```
+
+A non-`NULL` response indicates that EL2 entry was granted.
+
+#### Machine state for EL2 entry
+
+If the EL2 request is honoured, the following replaces the standard aarch64
+machine state:
+
+The executable is entered in little-endian AArch64 EL2t with VHE
+(`HCR_EL2.{E2H, TGE}` set to 1, `PSTATE.SP` set to 0).
+
+All `*_EL1` register guarantees described in the standard aarch64 machine state
+section still apply. Due to VHE register redirection, `*_EL1` accesses from EL2
+transparently access the EL2 register bank.
+
+Additionally:
+- `HCR_EL2`: `E2H` = 1, `TGE` = 1, `RW` = 1. Other bits are 0 or their
+  reserved value.
+- `CPTR_EL2`: FP/SIMD/SVE not trapped.
+- `CNTHCTL_EL2`: Timer/counter access not trapped.
+- `HSTR_EL2`: 0 (no system register trapping).
+- `VTTBR_EL2`: 0 (no stage 2 translation active).
+- All `*_EL12` registers (real EL1 state): Undefined.
+
+The [MP feature](#mp-multiprocessor-feature), if also requested, enters APs in the
+same EL2 VHE state.
+
 ### MP (Multiprocessor) Feature
 
 ID:

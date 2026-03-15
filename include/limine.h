@@ -244,6 +244,20 @@ struct limine_paging_mode_request {
     uint64_t min_mode;
 };
 
+/* aarch64 EL2 */
+
+#define LIMINE_AARCH64_EL2_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x4e5c9be65436c7aa, 0x81b90b8c04cbd935 }
+
+struct limine_aarch64_el2_response {
+    uint64_t revision;
+};
+
+struct limine_aarch64_el2_request {
+    uint64_t id[4];
+    uint64_t revision;
+    LIMINE_PTR(struct limine_aarch64_el2_response *) response;
+};
+
 /* MP */
 
 #define LIMINE_MP_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x95a67b819a1b857e, 0xa0b61b723b6a73e0 }
