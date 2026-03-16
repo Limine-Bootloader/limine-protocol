@@ -530,10 +530,12 @@ Other fields of `PSTATE` are undefined.
 At entry: the MMU (`SCTLR_EL1.M`) is enabled, the I-Cache and D-Cache
 (`SCTLR_EL1.{I, C}`) are enabled, data alignment checking (`SCTLR_EL1.A`) is
 disabled. SP alignment checking (`SCTLR_EL1.{SA, SA0}`) is enabled. Other fields
-of `SCTLR_EL1` are reset to 0 or to their reserved value.
+of `SCTLR_EL1` are 0 or their architecturally required RES1 value.
 
-Higher ELs do not interfere with accesses to vector or floating point
-instructions or registers.
+`CPACR_EL1` is 0. FP/SIMD/SVE are disabled at entry. The executable must
+enable the relevant `CPACR_EL1` fields before executing any FP/SIMD/SVE
+instruction. Higher ELs do not trap these accesses; once the executable enables
+them, they execute without trapping to a higher EL.
 
 Higher ELs do not interfere with accesses to the generic timer and counter.
 
@@ -541,6 +543,10 @@ The used translation granule size for both `TTBR0_EL1` and `TTBR1_EL1` is 4KiB.
 
 `TCR_EL1.{T0SZ, T1SZ}` are set to 16 under 4-level paging, or 12 under 5-level
 paging. Additionally, for 5-level paging, `TCR_EL1.DS` is set to 1.
+`TCR_EL1.IPS` is set to match the hardware's physical address size (from
+`ID_AA64MMFR0_EL1.PARange`). `TCR_EL1.{SH0, SH1}` are set to Inner Shareable.
+`TCR_EL1.{IRGN0, ORGN0, IRGN1, ORGN1}` are set to Write-Back RW-Allocate.
+All other fields of `TCR_EL1` are 0.
 
 `TTBR1_EL1` points to the bootloader-provided higher half page tables.
 For [base revision 0](#base-revision-0), `TTBR0_EL1` points to the bootloader-provided identity
@@ -554,6 +560,7 @@ which is at least 64KiB (65536 bytes) in size, or the size specified in the
 [Stack Size feature](#stack-size-feature).
 
 All other general purpose registers (including `X29` and `X30`) are set to 0.
+`X30` being 0 means the executable must not return from the entry point.
 Vector registers are in an undefined state.
 
 ### riscv64
@@ -1022,7 +1029,7 @@ A non-`NULL` response indicates that EL2 entry was granted.
 
 #### Machine state for EL2 entry
 
-If the EL2 request is honoured, the following replaces the standard aarch64
+If the EL2 request is honoured, the following amends the standard aarch64
 machine state:
 
 The executable is entered in little-endian AArch64 EL2t with VHE
@@ -1033,12 +1040,13 @@ section still apply. Due to VHE register redirection, `*_EL1` accesses from EL2
 transparently access the EL2 register bank.
 
 Additionally:
-- `HCR_EL2`: `E2H` = 1, `TGE` = 1, `RW` = 1. Other bits are 0 or their
-  reserved value.
-- `CPTR_EL2`: FP/SIMD/SVE not trapped.
-- `CNTHCTL_EL2`: Timer/counter access not trapped.
+- `HCR_EL2`: `E2H` = 1, `TGE` = 1, `RW` = 1, `SWIO` = 1. Other bits are 0.
+- `CPTR_EL2`: 0. FP/SIMD/SVE are disabled (same as `CPACR_EL1` in the
+  standard machine state). The executable must enable the relevant fields
+  before executing any FP/SIMD/SVE instruction.
+- `CNTHCTL_EL2`: Bits 0 and 1 are set to 1 (timer/counter access not trapped
+  from EL0). All other bits are 0.
 - `HSTR_EL2`: 0 (no system register trapping).
-- `VTTBR_EL2`: 0 (no stage 2 translation active).
 - All `*_EL12` registers (real EL1 state): Undefined.
 
 The [MP feature](#mp-multiprocessor-feature), if also requested, enters APs in the
