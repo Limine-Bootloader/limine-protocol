@@ -530,7 +530,8 @@ Other fields of `PSTATE` are undefined.
 At entry: the MMU (`SCTLR_EL1.M`) is enabled, the I-Cache and D-Cache
 (`SCTLR_EL1.{I, C}`) are enabled, data alignment checking (`SCTLR_EL1.A`) is
 disabled. SP alignment checking (`SCTLR_EL1.{SA, SA0}`) is enabled. Other fields
-of `SCTLR_EL1` are 0 or their architecturally required RES1 value.
+of `SCTLR_EL1` are 0, except bits 29, 28, 23, 22, 20, 11, 8, and 7 which are
+set to 1.
 
 `CPACR_EL1` is 0. FP/SIMD/SVE are disabled at entry. The executable must
 enable the relevant `CPACR_EL1` fields before executing any FP/SIMD/SVE
@@ -544,7 +545,8 @@ The used translation granule size for both `TTBR0_EL1` and `TTBR1_EL1` is 4KiB.
 `TCR_EL1.{T0SZ, T1SZ}` are set to 16 under 4-level paging, or 12 under 5-level
 paging. Additionally, for 5-level paging, `TCR_EL1.DS` is set to 1.
 `TCR_EL1.IPS` is set to match the hardware's physical address size (from
-`ID_AA64MMFR0_EL1.PARange`). `TCR_EL1.{SH0, SH1}` are set to Inner Shareable.
+`ID_AA64MMFR0_EL1.PARange`). `TCR_EL1.{TG0, TG1}` are set to 4KiB granule.
+`TCR_EL1.{SH0, SH1}` are set to Inner Shareable.
 `TCR_EL1.{IRGN0, ORGN0, IRGN1, ORGN1}` are set to Write-Back RW-Allocate.
 All other fields of `TCR_EL1` are 0.
 
