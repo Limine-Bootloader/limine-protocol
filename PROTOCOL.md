@@ -523,9 +523,8 @@ The `MAIR_EL1` register contents are described above, in the [caching section](#
 All interrupts are masked (`PSTATE.{D, A, I, F}` are set to 1).
 
 The executable is entered in little-endian AArch64 EL1t (EL1 with `PSTATE.SP` set to
-0, `PSTATE.E` set to 0, and `PSTATE.nRW` set to 0).
-
-Other fields of `PSTATE` are undefined.
+0, `PSTATE.E` set to 0, and `PSTATE.nRW` set to 0). All other `PSTATE` fields are
+set to 0.
 
 At entry: the MMU (`SCTLR_EL1.M`) is enabled, the I-Cache and D-Cache
 (`SCTLR_EL1.{I, C}`) are enabled, data alignment checking (`SCTLR_EL1.A`) is
