@@ -581,15 +581,22 @@ which is at least 64KiB (65536 bytes) in size, or the size specified in the
 
 `x3`(`gp`) is set to 0, executable must load its own global pointer if needed.
 
-All other general purpose registers, with the exception of `x5`(`t0`), are set to 0.
+`x5`(`t0`) contains the entry point address. All other general purpose registers
+are set to 0.
 
 If booted by EFI, boot services are exited.
 
-`stvec` is in an undefined state. `sstatus.SIE` and `sie` are set to 0.
+`stvec` is set to 0. The executable must load its own trap vector.
 
-`sstatus.FS` and `sstatus.XS` are both set to `Off`.
+`sstatus` is set to `0x200000000` (`UXL` = 2, all other fields 0). FP/SIMD/Vector
+extensions are disabled (`FS` = Off, `VS` = Off, `XS` = Off). The executable must
+set the relevant `sstatus` fields before executing any FP or vector instruction.
 
-Paging is enabled with the paging mode specified by the [Paging Mode feature](#paging-mode-feature).
+`sie` is set to 0.
+
+`satp` is configured with the paging mode specified by the
+[Paging Mode feature](#paging-mode-feature), `ASID` = 0, and `PPN` pointing to
+the bootloader-provided page tables.
 
 The (A)PLIC, if present, is in an undefined state.
 
