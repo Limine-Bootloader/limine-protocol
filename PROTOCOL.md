@@ -590,14 +590,21 @@ If booted by EFI, boot services are exited.
 `sstatus` is set to `0x200000000` (`UXL` = 2, all other fields 0). FP/SIMD/Vector
 extensions are disabled (`FS` = Off, `VS` = Off, `XS` = Off). The executable must
 set the relevant `sstatus` fields before executing any FP or vector instruction.
+Higher privilege levels do not trap these accesses; once the executable enables
+them, they execute without trapping to a higher privilege level.
+
+Floating-point registers (`f0`-`f31`, `fcsr`), if present, are in an undefined
+state. Vector registers (`v0`-`v31`, `vtype`, `vl`, `vcsr`), if present, are in
+an undefined state.
+
+Higher privilege levels do not interfere with accesses to the generic timer and
+counter.
 
 `sie` is set to 0.
 
 `satp` is configured with the paging mode specified by the
 [Paging Mode feature](#paging-mode-feature), `ASID` = 0, and `PPN` pointing to
 the bootloader-provided page tables.
-
-The (A)PLIC, if present, is in an undefined state.
 
 ### loongarch64
 
