@@ -620,15 +620,40 @@ value of `$pc` is going to be taken from there.
 which is at least 64KiB (65536 bytes) in size, or the size specified in the
 [Stack Size feature](#stack-size-feature).
 
-All other general purpose registers, with the exception of `$r12`(`$t0`), are set to 0.
+`$r12`(`$t0`) contains the entry point address. All other general purpose
+registers are set to 0.
 
 If booted by EFI, boot services are exited.
 
-`CSR.EENTRY`, `CSR.MERRENTRY` and `CSR.DWM0-3` are in an undefined state.
+`CSR.CRMD`: `PLV` = 0, `IE` = 0, `DA` = 0, `PG` = 1, `DATF` = 1 (CC),
+`DATM` = 1 (CC), `WE` = 0. All other fields are 0.
 
-`PG` in `CSR.CRMD` is 1, `DA` is 0, `IE` is 0 and `PLV` is 0 but is otherwise unspecified.
+`CSR.EUEN` is 0. FP/LSX/LASX/LBT are disabled at entry. The executable must
+enable the relevant `CSR.EUEN` fields before executing any FP or SIMD
+instruction. Higher privilege levels do not trap these accesses; once the
+executable enables them, they execute without trapping to a higher privilege
+level.
+
+Floating-point registers (`$f0`-`$f31`, `FCSR`), if present, are in an undefined
+state. LSX/LASX vector registers, if present, are in an undefined state.
+
+`CSR.ECFG` is 0 (all interrupt enables cleared).
+
+Higher privilege levels do not interfere with accesses to the timer and stable
+counter.
+
+`CSR.EENTRY` is 0. `CSR.MERRENTRY` is 0. The executable must load its own
+exception handlers.
+
+`CSR.DMW0` is set to `0x11` (`VSEG` = 0, `PLV0` = 1, `MAT` = CC). `CSR.DMW1`,
+`CSR.DMW2`, and `CSR.DMW3` are 0.
 
 `CSR.TLBRENTRY` is filled with a provided TLB refill handler.
+
+Paging is enabled with 4-level page tables. `CSR.PGDL` and `CSR.PGDH` point to
+the bootloader-provided page table roots. `CSR.PWCL` and `CSR.PWCH` are
+configured for 4-level paging with 4KiB pages. `CSR.STLBPS` is set to 12
+(4KiB).
 
 ## Features
 
