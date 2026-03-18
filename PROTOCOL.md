@@ -562,7 +562,6 @@ which is at least 64KiB (65536 bytes) in size, or the size specified in the
 
 All other general purpose registers (including `X29` and `X30`) are set to 0.
 `X30` being 0 means the executable must not return from the entry point.
-Vector registers are in an undefined state.
 
 ### riscv64
 
@@ -592,10 +591,6 @@ extensions are disabled (`FS` = Off, `VS` = Off, `XS` = Off). The executable mus
 set the relevant `sstatus` fields before executing any FP or vector instruction.
 Higher privilege levels do not trap these accesses; once the executable enables
 them, they execute without trapping to a higher privilege level.
-
-Floating-point registers (`f0`-`f31`, `fcsr`), if present, are in an undefined
-state. Vector registers (`v0`-`v31`, `vtype`, `vl`, `vcsr`), if present, are in
-an undefined state.
 
 Higher privilege levels do not interfere with accesses to the generic timer and
 counter.
@@ -633,9 +628,6 @@ enable the relevant `CSR.EUEN` fields before executing any FP or SIMD
 instruction. Higher privilege levels do not trap these accesses; once the
 executable enables them, they execute without trapping to a higher privilege
 level.
-
-Floating-point registers (`$f0`-`$f31`, `FCSR`), if present, are in an undefined
-state. LSX/LASX vector registers, if present, are in an undefined state.
 
 `CSR.ECFG` is 0 (all interrupt enables cleared).
 
