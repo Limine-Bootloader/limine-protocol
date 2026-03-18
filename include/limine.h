@@ -326,10 +326,17 @@ struct limine_mp_response {
 #elif defined (__loongarch__) && (__loongarch_grlen == 64)
 
 struct limine_mp_info {
+    uint64_t processor_id;
+    uint64_t phys_id;
     uint64_t reserved;
+    LIMINE_PTR(limine_goto_address) goto_address;
+    uint64_t extra_argument;
 };
 
 struct limine_mp_response {
+    uint64_t revision;
+    uint64_t flags;
+    uint64_t bsp_phys_id;
     uint64_t cpu_count;
     LIMINE_PTR(struct limine_mp_info **) cpus;
 };
