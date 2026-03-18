@@ -1251,6 +1251,50 @@ processor. This field is unused for the structure describing the bootstrap
 processor.
 * `extra_argument` - A free for use field.
 
+#### loongarch64
+
+Response:
+
+```c
+struct limine_mp_response {
+    uint64_t revision;
+    uint64_t flags;
+    uint64_t bsp_phys_id;
+    uint64_t cpu_count;
+    struct limine_mp_info **cpus;
+};
+```
+
+* `flags` - Always zero
+* `bsp_phys_id` - Physical CPU ID of the bootstrap processor (as read from `CSR.CPUID`).
+* `cpu_count` - How many CPUs are present. It includes the bootstrap processor.
+* `cpus` - Pointer to an array of `cpu_count` pointers to
+`struct limine_mp_info` structures.
+
+```c
+struct limine_mp_info;
+
+typedef void (*limine_goto_address)(struct limine_mp_info *);
+
+struct limine_mp_info {
+    uint64_t processor_id;
+    uint64_t phys_id;
+    uint64_t reserved;
+    limine_goto_address goto_address;
+    uint64_t extra_argument;
+};
+```
+
+* `processor_id` - ACPI Processor UID as specified by the MADT (always 0 on non-ACPI systems).
+* `phys_id` - Physical CPU ID of the processor as specified by the MADT or device tree.
+* `goto_address` - An atomic write to this field causes the parked CPU to
+jump to the written address, on a 64KiB (or [Stack Size feature](#stack-size-feature) size) stack. A pointer to the
+`struct limine_mp_info` structure of the CPU is passed in `$a0`. Other than
+that, the CPU state will be the same as described for the bootstrap
+processor. This field is unused for the structure describing the bootstrap
+processor.
+* `extra_argument` - A free for use field.
+
 ### RISC-V BSP Hart ID Feature
 
 ID:
