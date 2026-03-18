@@ -532,10 +532,10 @@ disabled. SP alignment checking (`SCTLR_EL1.{SA, SA0}`) is enabled. Other fields
 of `SCTLR_EL1` are 0, except bits 29, 28, 23, 22, 20, 11, 8, and 7 which are
 set to 1.
 
-`CPACR_EL1` is 0. FP/SIMD/SVE are disabled at entry. The executable must
-enable the relevant `CPACR_EL1` fields before executing any FP/SIMD/SVE
-instruction. Higher ELs do not trap these accesses; once the executable enables
-them, they execute without trapping to a higher EL.
+`CPACR_EL1` is 0. The executable must enable the relevant `CPACR_EL1` fields
+before executing any FP/SIMD/SVE instruction. Higher ELs do not trap these
+accesses; once the executable enables them, they execute without trapping to a
+higher EL.
 
 Higher ELs do not interfere with accesses to the generic timer and counter.
 
@@ -586,11 +586,11 @@ If booted by EFI, boot services are exited.
 
 `stvec` is set to 0. The executable must load its own trap vector.
 
-`sstatus` is set to `0x200000000` (`UXL` = 2, all other fields 0). FP and vector
-extensions are disabled (`FS` = Off, `VS` = Off, `XS` = Off). The executable must
-set the relevant `sstatus` fields before executing any FP or vector instruction.
-Higher privilege levels do not trap these accesses; once the executable enables
-them, they execute without trapping to a higher privilege level.
+`sstatus` is set to `0x200000000` (`UXL` = 2, all other fields 0). The executable
+must set the relevant `sstatus` fields before executing any FP or vector
+instruction. Higher privilege levels do not trap these accesses; once the
+executable enables them, they execute without trapping to a higher privilege
+level.
 
 Higher privilege levels do not interfere with accesses to the generic timer and
 counter.
@@ -623,11 +623,10 @@ If booted by EFI, boot services are exited.
 `CSR.CRMD`: `PLV` = 0, `IE` = 0, `DA` = 0, `PG` = 1, `DATF` = 1 (CC),
 `DATM` = 1 (CC), `WE` = 0. All other fields are 0.
 
-`CSR.EUEN` is 0. FP/LSX/LASX/LBT are disabled at entry. The executable must
-enable the relevant `CSR.EUEN` fields before executing any FP or SIMD
-instruction. Higher privilege levels do not trap these accesses; once the
-executable enables them, they execute without trapping to a higher privilege
-level.
+`CSR.EUEN` is 0. The executable must enable the relevant `CSR.EUEN` fields
+before executing any FP/SIMD instruction. Higher privilege levels do not trap
+these accesses; once the executable enables them, they execute without trapping
+to a higher privilege level.
 
 `CSR.ECFG` is 0 (all interrupt enables cleared).
 
@@ -1073,9 +1072,8 @@ transparently access the EL2 register bank.
 
 Additionally:
 - `HCR_EL2`: `E2H` = 1, `TGE` = 1, `RW` = 1, `SWIO` = 1. Other bits are 0.
-- `CPTR_EL2`: 0. FP/SIMD/SVE are disabled (same as `CPACR_EL1` in the
-  standard machine state). The executable must enable the relevant fields
-  before executing any FP/SIMD/SVE instruction.
+- `CPTR_EL2`: 0. The executable must enable the relevant fields before
+  executing any FP/SIMD/SVE instruction.
 - `CNTHCTL_EL2`: Bits 0 and 1 are set to 1 (timer/counter access not trapped
   from EL0). All other bits are 0.
 - `HSTR_EL2`: 0 (no system register trapping).
