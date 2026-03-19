@@ -51,7 +51,6 @@ languages.
   - [HHDM (Higher Half Direct Map)](#hhdm-higher-half-direct-map-feature)
   - [Framebuffer](#framebuffer-feature)
   - [Paging Mode](#paging-mode-feature)
-  - [aarch64 EL2](#aarch64-el2-feature)
   - [MP (Multiprocessor)](#mp-multiprocessor-feature)
   - [RISC-V BSP Hart ID](#risc-v-bsp-hart-id-feature)
   - [Memory Map](#memory-map-feature)
@@ -522,9 +521,14 @@ The `MAIR_EL1` register contents are described above, in the [caching section](#
 
 All interrupts are masked (`PSTATE.{D, A, I, F}` are set to 1).
 
-The executable is entered in little-endian AArch64 EL1t (EL1 with `PSTATE.SP` set to
-0, `PSTATE.E` set to 0, and `PSTATE.nRW` set to 0). All other `PSTATE` fields are
-set to 0.
+The executable is entered in little-endian AArch64 at either EL1 or EL2,
+depending on the firmware handoff state. If the bootloader is running at EL2 and
+VHE is supported by the hardware, the executable is entered at EL2 with VHE
+enabled. Otherwise, the executable is entered at EL1. Booting at EL2 without VHE
+support is not supported.
+
+In both cases, `PSTATE.SP` is set to 0, `PSTATE.E` is set to 0, `PSTATE.nRW` is
+set to 0, and all other `PSTATE` fields are set to 0.
 
 At entry: the MMU (`SCTLR_EL1.M`) is enabled, the I-Cache and D-Cache
 (`SCTLR_EL1.{I, C}`) are enabled, data alignment checking (`SCTLR_EL1.A`) is
@@ -533,11 +537,7 @@ of `SCTLR_EL1` are 0, except bits 29, 28, 23, 22, 20, 11, 8, and 7 which are
 set to 1.
 
 `CPACR_EL1` is 0. The executable must enable the relevant `CPACR_EL1` fields
-before executing any FP/SIMD/SVE instruction. Higher ELs do not trap these
-accesses; once the executable enables them, they execute without trapping to a
-higher EL.
-
-Higher ELs do not interfere with accesses to the generic timer and counter.
+before executing any FP/SIMD/SVE instruction.
 
 The used translation granule size for both `TTBR0_EL1` and `TTBR1_EL1` is 4KiB.
 
@@ -562,6 +562,21 @@ which is at least 64KiB (65536 bytes) in size, or the size specified in the
 
 All other general purpose registers (including `X29` and `X30`) are set to 0.
 `X30` being 0 means the executable must not return from the entry point.
+
+#### EL2 entry
+
+If entered at EL2, VHE is active (`HCR_EL2.{E2H, TGE}` set to 1). All `*_EL1`
+register guarantees described above still apply. Due to VHE register redirection,
+`*_EL1` accesses from EL2 transparently access the EL2 register bank.
+
+Additionally:
+- `HCR_EL2`: `E2H` = 1, `TGE` = 1, `RW` = 1, `SWIO` = 1. Other bits are 0.
+- `CPTR_EL2`: 0. The executable must enable the relevant fields before
+  executing any FP/SIMD/SVE instruction.
+- `CNTHCTL_EL2`: Bits 0 and 1 are set to 1 (timer/counter access not trapped
+  from EL0). All other bits are 0.
+- `HSTR_EL2`: 0 (no system register trapping).
+- All `*_EL12` registers (real EL1 state): Undefined.
 
 ### riscv64
 
@@ -1024,63 +1039,6 @@ Values assignable to `mode`, `max_mode`, and `min_mode`:
 #define LIMINE_PAGING_MODE_LOONGARCH_DEFAULT LIMINE_PAGING_MODE_LOONGARCH_4LVL
 #define LIMINE_PAGING_MODE_LOONGARCH_MIN LIMINE_PAGING_MODE_LOONGARCH_4LVL
 ```
-
-### aarch64 EL2 Feature
-
-ID:
-```c
-#define LIMINE_AARCH64_EL2_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x4e5c9be65436c7aa, 0x81b90b8c04cbd935 }
-```
-
-Request:
-```c
-struct limine_aarch64_el2_request {
-    uint64_t id[4];
-    uint64_t revision;
-    struct limine_aarch64_el2_response *response;
-};
-```
-
-The presence of this request indicates that the executable supports being entered
-at EL2 with VHE (Virtualization Host Extensions). If the bootloader is running at
-EL2 and VHE is supported by the hardware, the bootloader will enter the executable
-at EL2 instead of dropping to EL1.
-
-If the bootloader is running at EL1, or VHE is not supported, the response pointer
-is left `NULL` and the executable is entered at EL1 as usual.
-
-Response:
-```c
-struct limine_aarch64_el2_response {
-    uint64_t revision;
-};
-```
-
-A non-`NULL` response indicates that EL2 entry was granted.
-
-#### Machine state for EL2 entry
-
-If the EL2 request is honoured, the following amends the standard aarch64
-machine state:
-
-The executable is entered in little-endian AArch64 EL2t with VHE
-(`HCR_EL2.{E2H, TGE}` set to 1, `PSTATE.SP` set to 0).
-
-All `*_EL1` register guarantees described in the standard aarch64 machine state
-section still apply. Due to VHE register redirection, `*_EL1` accesses from EL2
-transparently access the EL2 register bank.
-
-Additionally:
-- `HCR_EL2`: `E2H` = 1, `TGE` = 1, `RW` = 1, `SWIO` = 1. Other bits are 0.
-- `CPTR_EL2`: 0. The executable must enable the relevant fields before
-  executing any FP/SIMD/SVE instruction.
-- `CNTHCTL_EL2`: Bits 0 and 1 are set to 1 (timer/counter access not trapped
-  from EL0). All other bits are 0.
-- `HSTR_EL2`: 0 (no system register trapping).
-- All `*_EL12` registers (real EL1 state): Undefined.
-
-The [MP feature](#mp-multiprocessor-feature), if also requested, enters APs in the
-same EL2 VHE state.
 
 ### MP (Multiprocessor) Feature
 
