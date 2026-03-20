@@ -603,12 +603,7 @@ If booted by EFI, boot services are exited.
 
 `sstatus` is set to `0x200000000` (`UXL` = 2, all other fields 0). The executable
 must set the relevant `sstatus` fields before executing any FP or vector
-instruction. Higher privilege levels do not trap these accesses; once the
-executable enables them, they execute without trapping to a higher privilege
-level.
-
-Higher privilege levels do not interfere with accesses to the generic timer and
-counter.
+instruction.
 
 `sie` is set to 0.
 
