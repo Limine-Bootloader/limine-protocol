@@ -519,15 +519,14 @@ its own.
 
 The `MAIR_EL1` register contents are described above, in the [caching section](#caching).
 
-All interrupts are masked (`PSTATE.{D, A, I, F}` are set to 1).
-
 The executable is entered in little-endian AArch64 at either EL1 or EL2,
 depending on the firmware handoff state. If the bootloader is running at EL2 and
 VHE is supported by the hardware, the executable is entered at EL2 with VHE
 enabled. Otherwise, the executable is entered at EL1. Booting at EL2 without VHE
 support is not supported.
 
-In both cases, all `PSTATE` fields are set to 0.
+In both cases, all interrupts are masked (`PSTATE.{D, A, I, F}` are set to 1).
+All other `PSTATE` fields are set to 0.
 
 At entry: the MMU (`SCTLR_EL1.M`) is enabled, the I-Cache and D-Cache
 (`SCTLR_EL1.{I, C}`) are enabled, data alignment checking (`SCTLR_EL1.A`) is
