@@ -639,14 +639,9 @@ If booted by EFI, boot services are exited.
 `DATM` = 1 (CC), `WE` = 0. All other fields are 0.
 
 `CSR.EUEN` is 0. The executable must enable the relevant `CSR.EUEN` fields
-before executing any FP/SIMD instruction. Higher privilege levels do not trap
-these accesses; once the executable enables them, they execute without trapping
-to a higher privilege level.
+before executing any FP/SIMD instruction.
 
 `CSR.ECFG` is 0 (all interrupt enables cleared).
-
-Higher privilege levels do not interfere with accesses to the timer and stable
-counter.
 
 `CSR.EENTRY` is 0. `CSR.MERRENTRY` is 0. The executable must load its own
 exception handlers.
