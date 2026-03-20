@@ -435,8 +435,10 @@ Weakly-ordered UnCached (WUC) MAT.
 unless the [Entry Point feature](#entry-point-feature) is requested, in which case, the value
 of `rip` is going to be taken from there.
 
-At entry all segment registers are loaded as 64 bit code/data segments, limits
-and bases are ignored since this is 64-bit mode.
+At entry, `CS` is loaded with `0x28` and `DS`, `ES`, `SS`, `FS`, `GS` are loaded
+with `0x30`, pointing to the 64-bit code and data descriptors respectively. In
+64-bit mode, segment limits are not enforced and bases for CS, DS, ES, and SS
+are forced to zero. FS and GS bases are set to 0.
 
 The GDT register is loaded to point to a GDT, in [bootloader-reclaimable memory](#memory-map-feature),
 with at least the following entries, starting at offset 0:
@@ -446,8 +448,8 @@ with at least the following entries, starting at offset 0:
   - 16-bit data descriptor. Base = `0`, limit = `0xffff`. Writable.
   - 32-bit code descriptor. Base = `0`, limit = `0xffffffff`. Readable.
   - 32-bit data descriptor. Base = `0`, limit = `0xffffffff`. Writable.
-  - 64-bit code descriptor. Base and limit irrelevant. Readable.
-  - 64-bit data descriptor. Base and limit irrelevant. Writable.
+  - 64-bit code descriptor. Base = `0`, limit irrelevant. Readable.
+  - 64-bit data descriptor. Base = `0`, limit irrelevant. Writable.
 
 The IDT is in an undefined state. Executable must load its own.
 
