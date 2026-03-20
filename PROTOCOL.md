@@ -371,7 +371,7 @@ the PAT is supported.
 
 All HHDM and identity map memory regions are mapped using write-back (WB) caching at the page
 tables level (again, `PAT[0]`), except framebuffer regions which are mapped using write-combining
-(WC) caching at the page tables level (`PAT[5]`, if the CPU support the PAT, see below).
+(WC) caching at the page tables level (`PAT[5]`, if the CPU supports the PAT, see below).
 
 If the CPU supports the PAT (Page Attribute Table), its layout is specified to be as follows:
 ```
