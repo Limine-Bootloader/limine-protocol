@@ -331,6 +331,12 @@ When a memory map region is mapped to the Higher Half Direct Map, mappings will 
 of 4KiB; if a region's start or end address is not 4KiB aligned, the mappings will overshoot the region
 boundaries in order to align to 4KiB while also covering the entire region.
 
+Because framebuffer regions are mapped with a different caching type (see the
+[caching section](#caching)), any usable memory map region that shares a page with
+a framebuffer region will be trimmed to avoid the overlap. Non-usable memory map
+regions that overlap a framebuffer page boundary are not permitted and will cause
+the bootloader to panic.
+
 For [base revision 0](#base-revision-0), the above-4GiB identity and HHDM mappings cover any memory
 map region.
 
