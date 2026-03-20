@@ -1152,7 +1152,8 @@ jump to the written address, on a 64KiB (or [Stack Size feature](#stack-size-fea
 `struct limine_mp_info` structure of the CPU is passed in `X0`. Other than
 that, the CPU state will be the same as described for the bootstrap
 processor. This field is unused for the structure describing the bootstrap
-processor.
+processor. For all CPUs, this field is guaranteed to be NULL when control is first passed
+to the bootstrap processor.
 * `extra_argument` - A free for use field.
 
 #### riscv64
@@ -1196,7 +1197,8 @@ jump to the written address, on a 64KiB (or [Stack Size feature](#stack-size-fea
 `struct limine_mp_info` structure of the CPU is passed in `x10`(`a0`). Other than
 that, the CPU state will be the same as described for the bootstrap
 processor. This field is unused for the structure describing the bootstrap
-processor.
+processor. For all CPUs, this field is guaranteed to be NULL when control is first passed
+to the bootstrap processor.
 * `extra_argument` - A free for use field.
 
 #### loongarch64
@@ -1240,7 +1242,8 @@ jump to the written address, on a 64KiB (or [Stack Size feature](#stack-size-fea
 `struct limine_mp_info` structure of the CPU is passed in `$a0`. Other than
 that, the CPU state will be the same as described for the bootstrap
 processor. This field is unused for the structure describing the bootstrap
-processor.
+processor. For all CPUs, this field is guaranteed to be NULL when control is first passed
+to the bootstrap processor.
 * `extra_argument` - A free for use field.
 
 ### RISC-V BSP Hart ID Feature
