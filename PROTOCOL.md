@@ -527,8 +527,7 @@ VHE is supported by the hardware, the executable is entered at EL2 with VHE
 enabled. Otherwise, the executable is entered at EL1. Booting at EL2 without VHE
 support is not supported.
 
-In both cases, `PSTATE.SP` is set to 0, `PSTATE.E` is set to 0, `PSTATE.nRW` is
-set to 0, and all other `PSTATE` fields are set to 0.
+In both cases, all `PSTATE` fields are set to 0.
 
 At entry: the MMU (`SCTLR_EL1.M`) is enabled, the I-Cache and D-Cache
 (`SCTLR_EL1.{I, C}`) are enabled, data alignment checking (`SCTLR_EL1.A`) is
