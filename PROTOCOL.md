@@ -29,6 +29,7 @@ languages.
   - [Base Revision 3](#base-revision-3)
   - [Base Revision 4](#base-revision-4)
   - [Base Revision 5](#base-revision-5)
+  - [Base Revision 6](#base-revision-6)
 - [Memory Layout at Entry](#memory-layout-at-entry)
 - [Caching](#caching)
   - [x86-64](#x86-64)
@@ -134,15 +135,15 @@ contained inside said section.
 
 ## Base Revisions
 
-The Limine boot protocol comes in several base revisions; so far, 6
-base revisions are specified: [0 through 5](#base-revision-changes-summary).
+The Limine boot protocol comes in several base revisions; so far, 7
+base revisions are specified: [0 through 6](#base-revision-changes-summary).
 
 Base revisions change certain behaviours of the Limine boot protocol
 outside any specific feature. The specifics are going to be described as
 needed throughout this specification, but are also coalesced in the
 [Base Revision Changes Summary](#base-revision-changes-summary) section.
 
-Base revision 0 through 3 are considered deprecated.
+Base revision 0 through 5 are considered deprecated.
 [Base revision 0](#base-revision-0) is the default base revision
 an executable is assumed to be requesting and complying to if no base revision tag
 is provided by the executable, for backwards compatibility.
@@ -293,6 +294,20 @@ This is the default base revision used if no base revision tag is provided.
     are also masked.
 - **x86-64**: The local APIC is initialised to a well-defined state on all processors
     (BSP and APs). See [x86-64 machine state](#x86-64-1) for details.
+
+### Base Revision 6
+
+**Changes from Base Revision 5**:
+- **aarch64**: FP/SIMD/SVE are disabled at entry (`CPACR_EL1` = 0).
+- **aarch64**: The executable is entered at EL2 with VHE if the bootloader is at
+    EL2 and VHE is supported. EL2 without VHE is not supported.
+- **aarch64**: Extra system registers and `PSTATE` have more strictly defined
+    states. See [aarch64 machine state](#aarch64-1) for details.
+- **riscv64**: Extra CSRs have more strictly defined states. See
+    [riscv64 machine state](#riscv64-1) for details.
+- **loongarch64**: FP/SIMD/LBT are disabled at entry (`CSR.EUEN` = 0).
+- **loongarch64**: Extra CSRs have more strictly defined states. See
+    [loongarch64 machine state](#loongarch64-1) for details.
 
 ## Memory Layout at Entry
 
@@ -527,33 +542,40 @@ its own.
 
 The `MAIR_EL1` register contents are described above, in the [caching section](#caching).
 
-The executable is entered in little-endian AArch64 at either EL1 or EL2,
-depending on the firmware handoff state. If the bootloader is running at EL2 and
-VHE is supported by the hardware, the executable is entered at EL2 with VHE
-enabled. Otherwise, the executable is entered at EL1. Booting at EL2 without VHE
-support is not supported.
+For [base revision 6](#base-revision-6) or greater, the executable is entered in
+little-endian AArch64 at either EL1 or EL2, depending on the firmware handoff
+state. If the bootloader is running at EL2 and VHE is supported by the hardware,
+the executable is entered at EL2 with VHE enabled. Otherwise, the executable is
+entered at EL1. Booting at EL2 without VHE support is not supported.
+For base revisions less than 6, the executable is always entered at EL1.
 
-In both cases, all interrupts are masked (`PSTATE.{D, A, I, F}` are set to 1).
-All other `PSTATE` fields are set to 0.
+In all cases, all interrupts are masked (`PSTATE.{D, A, I, F}` are set to 1).
+For [base revision 6](#base-revision-6) or greater, all other `PSTATE` fields are
+set to 0. For earlier base revisions, other `PSTATE` fields are undefined.
 
 At entry: the MMU (`SCTLR_EL1.M`) is enabled, the I-Cache and D-Cache
 (`SCTLR_EL1.{I, C}`) are enabled, data alignment checking (`SCTLR_EL1.A`) is
-disabled. SP alignment checking (`SCTLR_EL1.{SA, SA0}`) is enabled. Other fields
-of `SCTLR_EL1` are 0, except bits 29, 28, 23, 22, 20, 11, 8, and 7 which are
-set to 1.
+disabled. SP alignment checking (`SCTLR_EL1.{SA, SA0}`) is enabled. For
+[base revision 6](#base-revision-6) or greater, other fields of `SCTLR_EL1` are
+0, except bits 29, 28, 23, 22, 20, 11, 8, and 7 which are set to 1. For earlier
+base revisions, other fields are reset to 0 or to their reserved value.
 
-`CPACR_EL1` is 0. The executable must enable the relevant `CPACR_EL1` fields
-before executing any FP/SIMD/SVE instruction.
+For [base revision 6](#base-revision-6) or greater, `CPACR_EL1` is 0. The
+executable must enable the relevant `CPACR_EL1` fields before executing any
+FP/SIMD/SVE instruction.
 
 The used translation granule size for both `TTBR0_EL1` and `TTBR1_EL1` is 4KiB.
 
 `TCR_EL1.{T0SZ, T1SZ}` are set to 16 under 4-level paging, or 12 under 5-level
 paging. Additionally, for 5-level paging, `TCR_EL1.DS` is set to 1.
-`TCR_EL1.IPS` is set to match the hardware's physical address size (from
-`ID_AA64MMFR0_EL1.PARange`). `TCR_EL1.{TG0, TG1}` are set to 4KiB granule.
-`TCR_EL1.{SH0, SH1}` are set to Inner Shareable.
+For [base revision 6](#base-revision-6) or greater, the following `TCR_EL1`
+fields are also guaranteed: `TCR_EL1.IPS` is set to match the hardware's
+physical address size (from `ID_AA64MMFR0_EL1.PARange`). `TCR_EL1.{TG0, TG1}`
+are set to 4KiB granule. `TCR_EL1.{SH0, SH1}` are set to Inner Shareable.
 `TCR_EL1.{IRGN0, ORGN0, IRGN1, ORGN1}` are set to Write-Back RW-Allocate.
-All other fields of `TCR_EL1` are 0.
+All other fields of `TCR_EL1` are 0. For earlier base revisions,
+`TCR_EL1.{SH0, SH1}` are set to Outer Shareable and other fields beyond
+`T0SZ`, `T1SZ`, and `DS` are unspecified.
 
 `TTBR1_EL1` points to the bootloader-provided higher half page tables.
 For [base revision 0](#base-revision-0), `TTBR0_EL1` points to the bootloader-provided identity
@@ -605,17 +627,22 @@ are set to 0.
 
 If booted by EFI, boot services are exited.
 
-`stvec` is set to 0. The executable must load its own trap vector.
+For [base revision 6](#base-revision-6) or greater, `stvec` is set to 0. The
+executable must load its own trap vector. For earlier base revisions, `stvec` is
+in an undefined state.
 
-`sstatus` is set to `0x200000000` (`UXL` = 2, all other fields 0). The executable
-must set the relevant `sstatus` fields before executing any FP or vector
-instruction.
+For [base revision 6](#base-revision-6) or greater, `sstatus` is set to
+`0x200000000` (`UXL` = 2, all other fields 0). The executable must set the
+relevant `sstatus` fields before executing any FP or vector instruction.
+For earlier base revisions, `sstatus.SIE` is set to 0; other fields are
+unspecified.
 
 `sie` is set to 0.
 
 `satp` is configured with the paging mode specified by the
-[Paging Mode feature](#paging-mode-feature), `ASID` = 0, and `PPN` pointing to
-the bootloader-provided page tables.
+[Paging Mode feature](#paging-mode-feature). For [base revision 6](#base-revision-6)
+or greater, `ASID` is guaranteed to be 0. `PPN` points to the
+bootloader-provided page tables.
 
 ### loongarch64
 
@@ -636,26 +663,29 @@ registers are set to 0.
 
 If booted by EFI, boot services are exited.
 
-`CSR.CRMD`: `PLV` = 0, `IE` = 0, `DA` = 0, `PG` = 1, `DATF` = 1 (CC),
-`DATM` = 1 (CC), `WE` = 0. All other fields are 0.
+`PG` in `CSR.CRMD` is 1, `DA` is 0, `IE` is 0 and `PLV` is 0. For
+[base revision 6](#base-revision-6) or greater, `DATF` = 1 (CC), `DATM` = 1
+(CC), `WE` = 0, and all other fields are 0. For earlier base revisions, other
+fields are unspecified.
 
-`CSR.EUEN` is 0. The executable must enable the relevant `CSR.EUEN` fields
-before executing any FP/SIMD instruction.
+For [base revision 6](#base-revision-6) or greater, `CSR.EUEN` is 0. The
+executable must enable the relevant `CSR.EUEN` fields before executing any
+FP/SIMD instruction. `CSR.ECFG` is 0 (all interrupt enables cleared).
 
-`CSR.ECFG` is 0 (all interrupt enables cleared).
+For [base revision 6](#base-revision-6) or greater, `CSR.EENTRY` is 0 and
+`CSR.MERRENTRY` is 0. The executable must load its own exception handlers. For
+earlier base revisions, these are in an undefined state.
 
-`CSR.EENTRY` is 0. `CSR.MERRENTRY` is 0. The executable must load its own
-exception handlers.
-
-`CSR.DMW0` is set to `0x11` (`VSEG` = 0, `PLV0` = 1, `MAT` = CC). `CSR.DMW1`,
-`CSR.DMW2`, and `CSR.DMW3` are 0.
+For [base revision 6](#base-revision-6) or greater, `CSR.DMW0` is set to `0x11`
+(`VSEG` = 0, `PLV0` = 1, `MAT` = CC). `CSR.DMW1`, `CSR.DMW2`, and `CSR.DMW3`
+are 0. For earlier base revisions, `CSR.DMW0-3` are in an undefined state.
 
 `CSR.TLBRENTRY` is filled with a provided TLB refill handler.
 
-Paging is enabled with 4-level page tables. `CSR.PGDL` and `CSR.PGDH` point to
-the bootloader-provided page table roots. `CSR.PWCL` and `CSR.PWCH` are
-configured for 4-level paging with 4KiB pages. `CSR.STLBPS` is set to 12
-(4KiB).
+Paging is enabled with 4-level page tables. For [base revision 6](#base-revision-6)
+or greater, `CSR.PGDL` and `CSR.PGDH` point to the bootloader-provided page
+table roots. `CSR.PWCL` and `CSR.PWCH` are configured for 4-level paging with
+4KiB pages. `CSR.STLBPS` is set to 12 (4KiB).
 
 ## Features
 
