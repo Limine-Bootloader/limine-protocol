@@ -67,6 +67,7 @@ languages.
   - [Device Tree Blob](#device-tree-blob-feature)
   - [Bootloader Performance](#bootloader-performance-feature)
   - [Keep IOMMU](#keep-iommu-feature)
+  - [Flanterm FB Init Params](#flanterm-fb-init-params-feature)
 - [File Structure](#file-structure)
 
 ---
@@ -1858,6 +1859,99 @@ these.
 > [!NOTE]
 > Not passing this request does not imply that the bootloader is mandated to disable the IOMMUs,
 > though newly implemented bootloaders are strongly recommended to, and should, disable it.
+
+### Flanterm FB Init Params Feature
+
+This feature provides the parameters used by the bootloader to initialise its
+[Flanterm](https://codeberg.org/Mintsuki/Flanterm) framebuffer terminal instances.
+This allows the executable to initialise Flanterm in the same way as the bootloader,
+reproducing the same terminal appearance (wallpaper, colours, font, etc.).
+
+Entries in this response correspond by index to framebuffers in the
+[Framebuffer Feature](#framebuffer-feature) response. If a framebuffer does not
+support a Flanterm terminal (e.g. non-32bpp), its entry will be zeroed.
+
+ID:
+```c
+#define LIMINE_FLANTERM_FB_INIT_PARAMS_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x3259399fe7c5f126, 0xe01c1c8c5db9d1a9 }
+```
+
+Request:
+```c
+struct limine_flanterm_fb_init_params_request {
+    uint64_t id[4];
+    uint64_t revision;
+    struct limine_flanterm_fb_init_params_response *response;
+};
+```
+
+Response:
+```c
+struct limine_flanterm_fb_init_params_response {
+    uint64_t revision;
+    uint64_t entry_count;
+    struct limine_flanterm_fb_init_params **entries;
+};
+```
+
+* `entry_count` - The number of entries. Matches `framebuffer_count` from the
+Framebuffer Feature response.
+* `entries` - Pointer to an array of `entry_count` pointers to
+`struct limine_flanterm_fb_init_params` structures.
+
+> [!NOTE]
+> This feature requires the [Framebuffer Feature](#framebuffer-feature) to also be
+> requested. If no framebuffers are available, no response will be provided.
+
+```c
+// Constants for `rotation`
+#define LIMINE_FLANTERM_FB_ROTATE_0 0
+#define LIMINE_FLANTERM_FB_ROTATE_90 1
+#define LIMINE_FLANTERM_FB_ROTATE_180 2
+#define LIMINE_FLANTERM_FB_ROTATE_270 3
+
+struct limine_flanterm_fb_init_params {
+    uint32_t *canvas;
+    uint64_t canvas_size;
+    uint32_t ansi_colours[8];
+    uint32_t ansi_bright_colours[8];
+    uint32_t default_bg;
+    uint32_t default_fg;
+    uint32_t default_bg_bright;
+    uint32_t default_fg_bright;
+    void *font;
+    uint64_t font_width;
+    uint64_t font_height;
+    uint64_t font_spacing;
+    uint64_t font_scale_x;
+    uint64_t font_scale_y;
+    uint64_t margin;
+    uint64_t rotation;
+};
+```
+
+* `canvas` - Pointer to a pre-rendered background canvas buffer, or NULL if no
+wallpaper is configured. The buffer is `canvas_size` bytes and contains 32-bit
+pixels in the same format as the associated framebuffer, laid out at the
+framebuffer's width and height.
+* `canvas_size` - Size of the canvas buffer in bytes.
+* `ansi_colours` - The 8 standard ANSI colours (black, red, green, brown, blue,
+magenta, cyan, grey).
+* `ansi_bright_colours` - The 8 bright ANSI colours.
+* `default_bg` - Default background colour.
+* `default_fg` - Default foreground colour.
+* `default_bg_bright` - Default bright background colour.
+* `default_fg_bright` - Default bright foreground colour.
+* `font` - Pointer to font bitmap data, or NULL if the default built-in font is
+used. The font is a VGA-style bitmap font with 256 glyphs; its size in bytes is
+`font_width * font_height * 256 / 8`.
+* `font_width` - Font character width in pixels (always 8 for VGA fonts).
+* `font_height` - Font character height in pixels.
+* `font_spacing` - Extra horizontal spacing between characters in pixels.
+* `font_scale_x` - Horizontal font scale factor.
+* `font_scale_y` - Vertical font scale factor.
+* `margin` - Terminal margin in pixels from the screen edge.
+* `rotation` - Display rotation, one of the `LIMINE_FLANTERM_FB_ROTATE_*` constants.
 
 ## File Structure
 

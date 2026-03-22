@@ -206,6 +206,46 @@ struct limine_framebuffer_request {
     LIMINE_PTR(struct limine_framebuffer_response *) response;
 };
 
+/* Flanterm FB init params */
+
+#define LIMINE_FLANTERM_FB_INIT_PARAMS_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x3259399fe7c5f126, 0xe01c1c8c5db9d1a9 }
+
+#define LIMINE_FLANTERM_FB_ROTATE_0 0
+#define LIMINE_FLANTERM_FB_ROTATE_90 1
+#define LIMINE_FLANTERM_FB_ROTATE_180 2
+#define LIMINE_FLANTERM_FB_ROTATE_270 3
+
+struct limine_flanterm_fb_init_params {
+    LIMINE_PTR(uint32_t *) canvas;
+    uint64_t canvas_size;
+    uint32_t ansi_colours[8];
+    uint32_t ansi_bright_colours[8];
+    uint32_t default_bg;
+    uint32_t default_fg;
+    uint32_t default_bg_bright;
+    uint32_t default_fg_bright;
+    LIMINE_PTR(void *) font;
+    uint64_t font_width;
+    uint64_t font_height;
+    uint64_t font_spacing;
+    uint64_t font_scale_x;
+    uint64_t font_scale_y;
+    uint64_t margin;
+    uint64_t rotation;
+};
+
+struct limine_flanterm_fb_init_params_response {
+    uint64_t revision;
+    uint64_t entry_count;
+    LIMINE_PTR(struct limine_flanterm_fb_init_params **) entries;
+};
+
+struct limine_flanterm_fb_init_params_request {
+    uint64_t id[4];
+    uint64_t revision;
+    LIMINE_PTR(struct limine_flanterm_fb_init_params_response *) response;
+};
+
 /* Paging mode */
 
 #define LIMINE_PAGING_MODE_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x95c1a0edab0944cb, 0xa4e5cb3842f7488a }
