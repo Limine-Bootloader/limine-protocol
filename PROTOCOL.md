@@ -7,7 +7,7 @@ This file serves as the protocol's specification and as the official, centralise
 collection of [features](#features) that the Limine boot protocol is comprised of.
 Bootloaders may support extra unofficial features, but it is strongly recommended
 to avoid fragmentation and submit new features by opening a pull request to the
-[limine-protocol Codeberg repository](https://codeberg.org/Limine/limine-protocol).
+[limine-protocol GitHub repository](https://github.com/Limine-Bootloader/limine-protocol).
 
 The [limine.h](include/limine.h) file provides an implementation of all the
 structures and constants described in this document, for the C and C++
@@ -1870,7 +1870,7 @@ these.
 ### Flanterm FB Init Params Feature
 
 This feature provides the parameters used by the bootloader to initialise its
-[Flanterm](https://codeberg.org/Mintsuki/Flanterm) framebuffer terminal instances.
+[Flanterm](https://github.com/Mintsuki/Flanterm) framebuffer terminal instances.
 This allows the executable to initialise Flanterm in the same way as the bootloader,
 reproducing the same terminal appearance (wallpaper, colours, font, etc.).
 
