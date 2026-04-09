@@ -1832,41 +1832,43 @@ past.
 > system reset, due to implementation or platform restrictions. `reset_usec` will usually be 0 or a
 > value near zero, but may be any value relative to any point in the past.
 
-### Keep IOMMU Feature
+### x86-64 Keep IOMMU Feature
 
 ID:
 ```c
-#define LIMINE_KEEP_IOMMU_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x8ebaabe51f490179, 0x2aa86a59ffb4ab0f }
+#define LIMINE_X86_64_KEEP_IOMMU_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x8ebaabe51f490179, 0x2aa86a59ffb4ab0f }
 ```
 
 Request:
 ```c
-struct limine_keep_iommu_request {
+struct limine_x86_64_keep_iommu_request {
     uint64_t id[4];
     uint64_t revision;
-    struct limine_keep_iommu_response *response;
+    struct limine_x86_64_keep_iommu_response *response;
 };
 ```
 
 Response:
 ```c
-struct limine_keep_iommu_response {
+struct limine_x86_64_keep_iommu_response {
     uint64_t revision;
 };
 ```
 
-If this feature is requested, the bootloader will not disable IOMMUs (e.g. Intel VT-d, AMD-Vi,
-ARM SMMU, ...) that were left enabled by the firmware at bootloader hand-off, before executable
-handoff. This is intended for security-conscious executables that wish to preserve DMA protection
-and such set up by firmware.
+If this feature is requested, the bootloader will not disable IOMMUs (Intel VT-d, AMD-Vi)
+that were left enabled by the firmware at hand-off. This is intended for security-conscious
+executables that wish to preserve DMA protection set up by firmware.
 
 If this feature is not requested, the bootloader reserves the right to disable any active IOMMUs
-before handing control to the executable, for compatibility with kernels that do not support
+before handing control to the executable, for compatibility with executables that do not support
 these.
 
 > [!NOTE]
 > Not passing this request does not imply that the bootloader is mandated to disable the IOMMUs,
-> though newly implemented bootloaders are strongly recommended to, and should, disable it.
+> though newly implemented bootloaders are strongly recommended to, and should, disable them.
+
+> [!NOTE]
+> On non-x86 platforms, no response will be provided.
 
 ### TSC (Timestamp Counter) Frequency Feature
 
