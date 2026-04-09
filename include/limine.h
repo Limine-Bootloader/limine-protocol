@@ -627,6 +627,21 @@ struct limine_keep_iommu_request {
     LIMINE_PTR(struct limine_keep_iommu_response *) response;
 };
 
+/* TSC (Timestamp Counter) Frequency */
+
+#define LIMINE_TSC_FREQUENCY_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x10f2ee1d87d195e4, 0xf747a2b78f6ddb31 }
+
+struct limine_tsc_frequency_response {
+    uint64_t revision;
+    uint64_t frequency;
+};
+
+struct limine_tsc_frequency_request {
+    uint64_t id[4];
+    uint64_t revision;
+    LIMINE_PTR(struct limine_tsc_frequency_response *) response;
+};
+
 #ifdef __cplusplus
 }
 #endif

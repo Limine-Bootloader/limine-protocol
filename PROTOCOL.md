@@ -67,6 +67,7 @@ languages.
   - [Device Tree Blob](#device-tree-blob-feature)
   - [Bootloader Performance](#bootloader-performance-feature)
   - [Keep IOMMU](#keep-iommu-feature)
+  - [TSC (Timestamp Counter) Frequency](#tsc-timestamp-counter-frequency-feature)
   - [Flanterm FB Init Params](#flanterm-fb-init-params-feature)
 - [File Structure](#file-structure)
 
@@ -1866,6 +1867,43 @@ these.
 > [!NOTE]
 > Not passing this request does not imply that the bootloader is mandated to disable the IOMMUs,
 > though newly implemented bootloaders are strongly recommended to, and should, disable it.
+
+### TSC (Timestamp Counter) Frequency Feature
+
+ID:
+```c
+#define LIMINE_TSC_FREQUENCY_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x10f2ee1d87d195e4, 0xf747a2b78f6ddb31 }
+```
+
+Request:
+```c
+struct limine_tsc_frequency_request {
+    uint64_t id[4];
+    uint64_t revision;
+    struct limine_tsc_frequency_response *response;
+};
+```
+
+Response:
+```c
+struct limine_tsc_frequency_response {
+    uint64_t revision;
+    uint64_t frequency;
+};
+```
+
+* `frequency` - The frequency of the primary timestamp counter, in Hz.
+
+The primary timestamp counter is the counter read by the `RDTSC` instruction on x86-64,
+`CNTPCT_EL0` on aarch64, `RDTIME` on riscv64, and `RDTIME.D` on loongarch64.
+
+> [!NOTE]
+> The frequency value provided by this feature is best-effort, and may not be fully precise
+> depending on the platform and the method used by the bootloader to determine it.
+
+> [!NOTE]
+> If the bootloader is unable to determine the timestamp counter frequency, no response
+> will be provided.
 
 ### Flanterm FB Init Params Feature
 
