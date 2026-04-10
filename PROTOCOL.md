@@ -66,7 +66,7 @@ languages.
   - [Executable Address](#executable-address-feature)
   - [Device Tree Blob](#device-tree-blob-feature)
   - [Bootloader Performance](#bootloader-performance-feature)
-  - [Keep IOMMU](#keep-iommu-feature)
+  - [x86-64 Keep IOMMU](#x86-64-keep-iommu-feature)
   - [TSC (Timestamp Counter) Frequency](#tsc-timestamp-counter-frequency-feature)
   - [Flanterm FB Init Params](#flanterm-fb-init-params-feature)
 - [File Structure](#file-structure)
