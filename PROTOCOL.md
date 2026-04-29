@@ -61,6 +61,7 @@ languages.
   - [RSDP](#rsdp-feature)
   - [SMBIOS](#smbios-feature)
   - [EFI System Table](#efi-system-table-feature)
+  - [TPM Event Log](#tpm-event-log-feature)
   - [EFI Memory Map](#efi-memory-map-feature)
   - [Date at Boot](#date-at-boot-feature)
   - [Executable Address](#executable-address-feature)
@@ -1665,6 +1666,52 @@ struct limine_efi_system_table_response {
 
 > [!NOTE]
 > If EFI is not available, no response will be provided.
+
+### TPM Event Log Feature
+
+ID:
+```c
+#define LIMINE_TPM_EVENT_LOG_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x98e094fc7e76e979, 0xee8d8775c54e1d1f }
+```
+
+Request:
+```c
+struct limine_tpm_event_log_request {
+    uint64_t id[4];
+    uint64_t revision;
+    struct limine_tpm_event_log_response *response;
+};
+```
+
+Response:
+```c
+struct limine_tpm_event_log_response {
+    uint64_t revision;
+    uint64_t format;
+    uint64_t size;
+    void *address;
+};
+```
+
+* `format` - Format of the event log. One of:
+```c
+#define LIMINE_TPM_EVENT_LOG_FORMAT_TCG_1_2 1
+#define LIMINE_TPM_EVENT_LOG_FORMAT_TCG_2   2
+```
+* `size` - Size in bytes of the raw event data at `address`.
+* `address` - Address (HHDM, in [bootloader reclaimable memory](#memory-map-feature)) of the
+    captured TCG event log. The buffer holds the raw event stream as defined by the indicated
+    `format`, with no additional framing.
+
+> [!NOTE]
+> The bootloader captures the firmware event log via `EFI_TCG2_PROTOCOL.GetEventLog()` while
+> boot services are alive and copies it into memory that survives `ExitBootServices()`. The
+> event stream covers all measurements made before handoff, including those performed by the
+> bootloader itself.
+
+> [!NOTE]
+> If a TPM is not available, or the firmware does not implement `EFI_TCG2_PROTOCOL`, or the
+> event log retrieval fails, no response will be provided.
 
 ### EFI Memory Map Feature
 

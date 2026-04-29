@@ -519,6 +519,26 @@ struct limine_efi_system_table_request {
     LIMINE_PTR(struct limine_efi_system_table_response *) response;
 };
 
+/* TPM event log */
+
+#define LIMINE_TPM_EVENT_LOG_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x98e094fc7e76e979, 0xee8d8775c54e1d1f }
+
+#define LIMINE_TPM_EVENT_LOG_FORMAT_TCG_1_2 1
+#define LIMINE_TPM_EVENT_LOG_FORMAT_TCG_2   2
+
+struct limine_tpm_event_log_response {
+    uint64_t revision;
+    uint64_t format;
+    uint64_t size;
+    LIMINE_PTR(void *) address;
+};
+
+struct limine_tpm_event_log_request {
+    uint64_t id[4];
+    uint64_t revision;
+    LIMINE_PTR(struct limine_tpm_event_log_response *) response;
+};
+
 /* EFI memory map */
 
 #define LIMINE_EFI_MEMMAP_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x7df62a431d6872d5, 0xa4fcdfb3e57306c8 }
