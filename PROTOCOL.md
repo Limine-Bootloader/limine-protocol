@@ -1548,18 +1548,28 @@ struct limine_module_request {
 As part of `struct limine_internal_module`:
 
 * `path` - Path to the module to load. This path is *relative* to the location of
-the executable.
+the executable. The path may be suffixed with `#` followed by a 128-character
+hexadecimal blake2b hash of the file contents, in which case the bootloader will
+verify the hash before honouring the module.
 * `string` - String associated with the given module.
 * `flags` - Flags changing module loading behaviour:
   - `LIMINE_INTERNAL_MODULE_REQUIRED`: Fail if the requested module is not found.
-  - `LIMINE_INTERNAL_MODULE_COMPRESSED`: Deprecated. Bootloader may not support
-    it and panic instead (from Limine 8.x onwards). Alternatively: the module
-    is GZ-compressed and should be decompressed by the bootloader. This is
-    honoured if the response is revision 2 or greater.
+  - `LIMINE_INTERNAL_MODULE_COMPRESSED`: The module is GZ-compressed and should be
+    decompressed by the bootloader. This is honoured if the response is revision 2
+    or greater.
 
 Internal Limine modules are guaranteed to be loaded *before* user-specified
 (configuration) modules, and thus they are guaranteed to appear before user-specified
 modules in the `modules` array in the response.
+
+> [!NOTE]
+> When Secure Boot is active, every loaded file must have an associated blake2b
+> hash, and internal modules are no exception: a `path` lacking a `#<hash>` suffix
+> will cause the bootloader to panic, regardless of the `LIMINE_INTERNAL_MODULE_REQUIRED`
+> flag. There is no separate hash field on `struct limine_internal_module`; the
+> hash must be appended to the `path` string. Executables intended to be bootable
+> under Secure Boot must therefore embed the precomputed hash of each internal
+> module in the path they hand to the bootloader.
 
 Response:
 ```c
