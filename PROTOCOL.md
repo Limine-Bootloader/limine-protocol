@@ -359,10 +359,10 @@ of 4KiB; if a region's start or end address is not 4KiB aligned, the mappings wi
 boundaries in order to align to 4KiB while also covering the entire region.
 
 Because framebuffer regions are mapped with a different caching type (see the
-[caching section](#caching)), any usable memory map region that shares a page with
-a framebuffer region will be trimmed to avoid the overlap. Non-usable memory map
-regions that overlap a framebuffer page boundary are not permitted and will cause
-the bootloader to panic.
+[caching section](#caching)), any usable or reserved memory map region that shares
+a page with a framebuffer region will be trimmed to avoid the overlap. Memory map
+regions of any other type that overlap a framebuffer page boundary are not
+permitted and will cause the bootloader to panic.
 
 For [base revision 0](#base-revision-0), the above-4GiB identity and HHDM mappings cover any memory
 map region.
