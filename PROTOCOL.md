@@ -1557,10 +1557,10 @@ struct limine_executable_file_response {
 };
 ```
 
-* `executable_file` - Pointer to the `struct limine_file` structure (see
-[File Structure](#file-structure) below).
-for the executable file. The `string` member is a pointer to the same memory as the `cmdline` value
-as reported by the [Executable Command Line feature](#executable-command-line-feature).
+* `executable_file` - Pointer to the `struct limine_file` structure for the
+executable file (see [File Structure](#file-structure) below). The `string`
+member is a pointer to the same memory as the `cmdline` value reported by the
+[Executable Command Line feature](#executable-command-line-feature).
 
 ### Module Feature
 
