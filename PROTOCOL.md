@@ -1668,7 +1668,7 @@ struct limine_rsdp_response {
 * `address` - Address of the RSDP table. Physical for [base revision 3](#base-revision-3) **only**.
 
 > [!NOTE]
-> If ACPI is not available, no response will not be provided.
+> If ACPI is not available, no response will be provided.
 
 ### SMBIOS Feature
 
