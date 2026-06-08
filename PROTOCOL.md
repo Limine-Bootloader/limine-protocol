@@ -1140,6 +1140,18 @@ struct limine_mp_request {
 > If this request is supported, even on single-processor system, a response will be provided,
 > containing only the bootstrap processor's entry.
 
+> [!NOTE]
+> To release an application processor, initialise any data it must observe,
+> including `extra_argument`, then publish the entry point with an atomic store
+> to `goto_address` using release semantics or stronger. A sequentially
+> consistent store is sufficient. The parked processor observes this store with
+> acquire semantics before jumping to the entry point.
+>
+> The `reserved` and `reserved1` fields of `struct limine_mp_info` are reserved
+> for bootloader use. Executables must not modify them; parked application
+> processors use the `reserved` field internally, including to hold the
+> bootloader-provided stack pointer.
+
 #### x86-64:
 
 Response:
@@ -1185,8 +1197,10 @@ struct limine_mp_info {
 
 * `processor_id` - ACPI Processor UID as specified by the MADT
 * `lapic_id` - Local APIC ID of the processor as specified by the MADT
+* `reserved` - Reserved for bootloader use.
 * `goto_address` - An atomic write to this field causes the parked CPU to
-jump to the written address, on a 64KiB (or [Stack Size feature](#stack-size-feature) size) stack. A pointer to the
+jump to the written address, on a stack whose size follows the
+[Stack Size feature](#stack-size-feature). A pointer to the
 `struct limine_mp_info` structure of the CPU is passed in `RDI`. Other than
 that, the CPU state will be the same as described for the bootstrap
 processor. This field is unused for the structure describing the bootstrap
@@ -1231,8 +1245,10 @@ struct limine_mp_info {
 
 * `processor_id` - ACPI Processor UID as specified by the MADT (always 0 on non-ACPI systems).
 * `mpidr` - MPIDR of the processor as specified by the MADT or device tree.
+* `reserved1` and `reserved` - Reserved for bootloader use.
 * `goto_address` - An atomic write to this field causes the parked CPU to
-jump to the written address, on a 64KiB (or [Stack Size feature](#stack-size-feature) size) stack. A pointer to the
+jump to the written address, on a stack whose size follows the
+[Stack Size feature](#stack-size-feature). A pointer to the
 `struct limine_mp_info` structure of the CPU is passed in `X0`. Other than
 that, the CPU state will be the same as described for the bootstrap
 processor. This field is unused for the structure describing the bootstrap
@@ -1276,8 +1292,10 @@ struct limine_mp_info {
 
 * `processor_id` - ACPI Processor UID as specified by the MADT (always 0 on non-ACPI systems).
 * `hartid` - Hart ID of the processor as specified by the MADT or Device Tree.
+* `reserved` - Reserved for bootloader use.
 * `goto_address` - An atomic write to this field causes the parked CPU to
-jump to the written address, on a 64KiB (or [Stack Size feature](#stack-size-feature) size) stack. A pointer to the
+jump to the written address, on a stack whose size follows the
+[Stack Size feature](#stack-size-feature). A pointer to the
 `struct limine_mp_info` structure of the CPU is passed in `x10`(`a0`). Other than
 that, the CPU state will be the same as described for the bootstrap
 processor. This field is unused for the structure describing the bootstrap
@@ -1321,8 +1339,10 @@ struct limine_mp_info {
 
 * `processor_id` - ACPI Processor UID as specified by the MADT (always 0 on non-ACPI systems).
 * `phys_id` - Physical CPU ID of the processor as specified by the MADT or device tree.
+* `reserved` - Reserved for bootloader use.
 * `goto_address` - An atomic write to this field causes the parked CPU to
-jump to the written address, on a 64KiB (or [Stack Size feature](#stack-size-feature) size) stack. A pointer to the
+jump to the written address, on a stack whose size follows the
+[Stack Size feature](#stack-size-feature). A pointer to the
 `struct limine_mp_info` structure of the CPU is passed in `$a0`. Other than
 that, the CPU state will be the same as described for the bootstrap
 processor. This field is unused for the structure describing the bootstrap
