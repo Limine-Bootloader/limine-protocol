@@ -88,6 +88,16 @@ All pointers are 64-bit wide. All non-NULL pointers point to the object with the
 [Higher Half Direct Map](#hhdm-higher-half-direct-map-feature) (HHDM) offset already added
 to them, unless otherwise noted.
 
+Unless explicitly specified otherwise, pointer fields in response structures,
+and elements of pointer arrays returned in responses, are non-NULL.
+
+Strings passed in or returned by protocol structures are 0-terminated ASCII
+strings unless otherwise noted.
+
+Bits in request `flags` fields not defined by this specification are reserved
+and must be set to zero by executables. Bits in response `flags` fields not
+defined by this specification are reserved and should be ignored by executables.
+
 All [responses](#response) and associated data structures are placed in
 [bootloader-reclaimable memory](#memory-map-feature) regions.
 
@@ -1710,8 +1720,9 @@ struct limine_tpm_event_log_response {
 ```
 * `size` - Size in bytes of the raw event data at `address`.
 * `address` - Address (HHDM, in [bootloader reclaimable memory](#memory-map-feature)) of the
-    captured TCG event log. The buffer holds the raw event stream as defined by the indicated
-    `format`, with no additional framing.
+    captured TCG event log, or NULL if `size` is 0. The buffer holds the raw
+    event stream as defined by the indicated `format`, with no additional
+    framing.
 
 > [!NOTE]
 > The bootloader captures the firmware event log via `EFI_TCG2_PROTOCOL.GetEventLog()` while
