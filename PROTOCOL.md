@@ -1523,7 +1523,8 @@ struct limine_entry_point_request {
 };
 ```
 
-* `entry` - The requested entry point.
+* `entry` - The requested entry point. This must be a non-NULL function pointer
+within the loaded executable image.
 
 Response:
 ```c
@@ -1599,11 +1600,12 @@ struct limine_module_request {
 
 As part of `struct limine_internal_module`:
 
-* `path` - Path to the module to load. This path is *relative* to the location of
-the executable. The path may be suffixed with `#` followed by a 128-character
-hexadecimal blake2b hash of the file contents, in which case the bootloader will
-verify the hash before honouring the module.
-* `string` - String associated with the given module.
+* `path` - Non-NULL path to the module to load. This path is *relative* to the
+location of the executable. The path may be suffixed with `#` followed by a
+128-character hexadecimal blake2b hash of the file contents, in which case the
+bootloader will verify the hash before honouring the module.
+* `string` - Non-NULL string associated with the given module. Use an empty
+string if no module string is needed.
 * `flags` - Flags changing module loading behaviour:
   - `LIMINE_INTERNAL_MODULE_REQUIRED`: Fail if the requested module is not found.
   - `LIMINE_INTERNAL_MODULE_COMPRESSED`: The module is GZ-compressed and should be
