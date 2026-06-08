@@ -1127,6 +1127,12 @@ struct limine_mp_request {
 * `flags` - Bit 0: Enable x2APIC, if possible. (x86-64 only)
 
 > [!NOTE]
+> On x86-64, if firmware has already enabled x2APIC and bit 0 is clear, the
+> bootloader will try to disable x2APIC before handoff. If the MP request is
+> present and x2APIC cannot be disabled, the bootloader will fail to boot the
+> executable.
+
+> [!NOTE]
 > The presence of this request will prompt the bootloader to bootstrap
 > the secondary processors. This will not be done if this request is not present.
 
@@ -1155,6 +1161,9 @@ struct limine_mp_response {
 * `cpu_count` - How many CPUs are present. It includes the bootstrap processor.
 * `cpus` - Pointer to an array of `cpu_count` pointers to
 `struct limine_mp_info` structures.
+
+Executables can test `LIMINE_MP_RESPONSE_X86_64_X2APIC` in `flags` to
+determine whether x2APIC mode was enabled by the bootloader.
 
 > [!NOTE]
 > The MTRRs of APs will be synchronised by the bootloader to match
