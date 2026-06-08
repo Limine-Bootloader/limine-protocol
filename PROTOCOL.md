@@ -333,18 +333,26 @@ This is the default base revision used if no base revision tag is provided.
 
 ## Memory Layout at Entry
 
-The protocol mandates executables to load themselves at or above
-`0xffffffff80000000`. Lower half executables are *not supported*. For relocatable executables
-asking to be loaded at address 0, a minimum slide of `0xffffffff80000000` is applied.
+Executable segments are mapped in the higher half at or above
+`0xffffffff80000000`. Non-relocatable executables must already request
+higher-half virtual addresses. Relocatable lower-half executables are supported:
+when the lowest loadable virtual address is below `0xffffffff80000000`, the
+bootloader applies a slide of at least `0xffffffff80000000 - min_vaddr`, where
+`min_vaddr` is the lowest loadable virtual address in the executable image.
 
 A "slide" is an offset applied to the executable's base load address.
 
 At handoff, the executable will be properly loaded and mapped with appropriate
-MMU permissions, as supervisor, at the requested virtual memory address (provided it is at
-or above `0xffffffff80000000`).
+MMU permissions, as supervisor, at each loadable virtual address plus the
+applied slide.
+
+For ELF executables, `PT_LOAD` permissions are reflected in the mappings:
+`PF_X` controls executability and `PF_W` controls writability; read access is
+always available.
 
 No specific physical memory placement is guaranteed, except that the loaded executable image
-is guaranteed to be physically contiguous. In order to determine
+is guaranteed to be physically contiguous. The virtual-to-physical mapping of
+the loaded executable image uses a single uniform offset. In order to determine
 where the executable is loaded in physical memory, see the
 [Executable Address feature](#executable-address-feature).
 
@@ -403,6 +411,11 @@ the above memory mappings.
 
 If the executable is a position independent executable, the bootloader is free to
 relocate it as it sees fit, potentially performing slide randomisation.
+
+The HHDM base is selected by the bootloader and may vary between boots,
+including for randomisation. Executables must discover it using the
+[HHDM feature](#hhdm-higher-half-direct-map-feature) and must not assume a
+fixed offset.
 
 ## Caching
 
