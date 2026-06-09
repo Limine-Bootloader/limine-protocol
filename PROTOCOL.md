@@ -2137,7 +2137,7 @@ struct limine_file {
     char *string;
     uint32_t media_type;
     uint32_t unused;
-    uint32_t tftp_ip;
+    uint8_t tftp_ipv4[4];
     uint32_t tftp_port;
     uint32_t partition_index;
     uint32_t mbr_disk_id;
@@ -2152,19 +2152,22 @@ struct limine_file {
 * `size` - The size of the file. Regardless of the file size, all loaded
 modules are guaranteed to have all 4KiB chunks of memory they cover for
 themselves exclusively.
-* `path` - The path of the file within the volume, with a leading slash.
-* `string` - A string associated with the file.
+* `path` - The 0-terminated ASCII path of the file within the volume, with a
+leading slash.
+* `string` - A 0-terminated ASCII string associated with the file.
 * `media_type` - Type of media file resides on.
-* `tftp_ip` - If non-0, this is the IP of the TFTP server the file was loaded
-from.
+* `tftp_ipv4` - If not all zero bytes, this is the IPv4 address of the TFTP
+server the file was loaded from, in dotted-decimal octet order.
 * `tftp_port` - Likewise, but port.
 * `partition_index` - 1-based partition index of the volume from which the
 file was loaded. If 0, it means invalid or unpartitioned.
 * `mbr_disk_id` - If non-0, this is the ID of the disk the file was loaded
 from as reported in its MBR.
-* `gpt_disk_uuid` - If non-0, this is the UUID of the disk the file was
-loaded from as reported in its GPT.
-* `gpt_part_uuid` - If non-0, this is the UUID of the partition the file
-was loaded from as reported in the GPT.
-* `part_uuid` - If non-0, this is the UUID of the filesystem of the partition
-the file was loaded from.
+* `gpt_disk_uuid` - If not all zero bytes, this is the UUID of the disk the
+file was loaded from as reported in its GPT.
+* `gpt_part_uuid` - If not all zero bytes, this is the UUID of the partition the
+file was loaded from as reported in the GPT.
+* `part_uuid` - If not all zero bytes, this is the UUID of the filesystem of the
+partition the file was loaded from.
+
+A UUID with all bytes zero indicates that the field is unset.
