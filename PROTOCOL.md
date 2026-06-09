@@ -2104,9 +2104,9 @@ magenta, cyan, grey).
 * `default_fg` - Default foreground colour.
 * `default_bg_bright` - Default bright background colour.
 * `default_fg_bright` - Default bright foreground colour.
-* `font` - Pointer to font bitmap data, or NULL if the default built-in font is
-used. The font is a VGA-style bitmap font with 256 glyphs; its size in bytes is
-`font_width * font_height * 256 / 8`.
+* `font` - Pointer to VGA-style font bitmap data with 256 glyphs. This points
+to the actual font data, including the built-in default font if no custom font
+is configured. Its size in bytes is `font_width * font_height * 256 / 8`.
 * `font_width` - Font character width in pixels (always 8 for VGA fonts).
 * `font_height` - Font character height in pixels.
 * `font_spacing` - Extra horizontal spacing between characters in pixels.
