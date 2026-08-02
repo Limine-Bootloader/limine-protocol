@@ -1223,7 +1223,9 @@ struct limine_mp_response {
 ```
 
 * `flags` - Always zero
-* `bsp_mpidr` - MPIDR of the bootstrap processor (as read from `MPIDR_EL1`, with Res1 masked off).
+* `bsp_mpidr` - MPIDR of the bootstrap processor, in the same form as the
+`mpidr` field of `struct limine_mp_info`: the affinity fields of `MPIDR_EL1`
+with all other bits, such as `Res1`, `U`, and `MT`, masked off.
 * `cpu_count` - How many CPUs are present. It includes the bootstrap processor.
 * `cpus` - Pointer to an array of `cpu_count` pointers to
 `struct limine_mp_info` structures.
