@@ -1246,7 +1246,8 @@ struct limine_mp_info {
 ```
 
 * `processor_id` - ACPI Processor UID as specified by the MADT (always 0 on non-ACPI systems).
-* `mpidr` - MPIDR of the processor as specified by the MADT or device tree.
+* `mpidr` - MPIDR of the processor as specified by the MADT or device tree:
+the affinity fields with all other bits, such as `Res1`, `U`, and `MT`, masked off.
 * `reserved1` and `reserved` - Reserved for bootloader use.
 * `goto_address` - An atomic write to this field causes the parked CPU to
 jump to the written address, on a stack whose size follows the
