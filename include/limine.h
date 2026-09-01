@@ -662,6 +662,23 @@ struct limine_tsc_frequency_request {
     LIMINE_PTR(struct limine_tsc_frequency_response *) response;
 };
 
+/* Entropy */
+
+#define LIMINE_ENTROPY_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x65ea80255d5682c5, 0x9117240723f493eb }
+
+struct limine_entropy_response {
+    uint64_t revision;
+    uint64_t value_count;
+    LIMINE_PTR(uint64_t *) values;
+};
+
+struct limine_entropy_request {
+    uint64_t id[4];
+    uint64_t revision;
+    LIMINE_PTR(struct limine_entropy_response *) response;
+    uint64_t value_count;
+};
+
 #ifdef __cplusplus
 }
 #endif

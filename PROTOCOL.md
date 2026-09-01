@@ -70,6 +70,7 @@ languages.
   - [x86-64 Keep IOMMU](#x86-64-keep-iommu-feature)
   - [TSC (Timestamp Counter) Frequency](#tsc-timestamp-counter-frequency-feature)
   - [Flanterm FB Init Params](#flanterm-fb-init-params-feature)
+  - [Entropy](#entropy-feature)
 - [File Structure](#file-structure)
 
 ---
@@ -2117,6 +2118,46 @@ is configured. Its size in bytes is `font_width * font_height * 256 / 8`.
 * `font_scale_y` - Vertical font scale factor.
 * `margin` - Terminal margin in pixels from the screen edge.
 * `rotation` - Display rotation, one of the `LIMINE_FLANTERM_FB_ROTATE_*` constants.
+
+### Entropy Feature
+
+ID:
+```c
+#define LIMINE_ENTROPY_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x65ea80255d5682c5, 0x9117240723f493eb }
+```
+
+Request:
+```c
+struct limine_entropy_request {
+    uint64_t id[4];
+    uint64_t revision;
+    struct limine_entropy_response *response;
+    uint64_t value_count;
+};
+```
+
+* `value_count` - The number of random 64-bit values requested.
+
+Response:
+```c
+struct limine_entropy_response {
+    uint64_t revision;
+    uint64_t value_count;
+    uint64_t *values;
+};
+```
+
+* `value_count` - The number of random 64-bit values provided. This is the count
+    requested, unless that exceeds an implementation-defined limit.
+* `values` - Address (HHDM, in [bootloader reclaimable memory](#memory-map-feature)) of the
+    array of `value_count` random 64-bit values, or 0 if `value_count` is 0.
+
+> [!NOTE]
+> The values are best effort: the bootloader draws them from the strongest sources
+> available to it, such as dedicated CPU instructions or firmware services, and falls
+> back to weaker sources, such as a timing-seeded PRNG, only where nothing stronger
+> exists. They are suitable for seeding an RNG, but carry no guarantee of
+> hardware-grade entropy.
 
 ## File Structure
 
