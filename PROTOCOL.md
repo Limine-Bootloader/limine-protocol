@@ -350,7 +350,9 @@ applied slide.
 
 For ELF executables, `PT_LOAD` permissions are reflected in the mappings:
 `PF_X` controls executability and `PF_W` controls writability; read access is
-always available.
+always available. Executability is only controlled where the processor provides
+execute protection: on x86-64, only if NX is available, and on loongarch64, only
+if `CPUCFG1.EP` is set.
 
 No specific physical memory placement is guaranteed, except that the loaded executable image
 is guaranteed to be physically contiguous. The virtual-to-physical mapping of
