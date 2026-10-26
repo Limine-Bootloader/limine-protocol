@@ -382,9 +382,10 @@ boundaries in order to align to 4KiB while also covering the entire region.
 
 Because framebuffer regions are mapped with a different caching type (see the
 [caching section](#caching)), any usable or reserved memory map region that shares
-a page with a framebuffer region will be trimmed to avoid the overlap. Memory map
-regions of any other type that overlap a framebuffer page boundary are not
-permitted and will cause the bootloader to panic.
+a page with a framebuffer region will be trimmed to avoid the overlap, as will any
+bootloader reclaimable region that the UEFI firmware reported as boot services or
+loader memory. Any other memory map region that overlaps a framebuffer page
+boundary is not permitted and will cause the bootloader to panic.
 
 For [base revision 0](#base-revision-0), the above-4GiB identity and HHDM mappings cover any memory
 map region.
