@@ -971,6 +971,12 @@ struct limine_framebuffer_response {
 // Constants for `memory_model`
 #define LIMINE_FRAMEBUFFER_RGB 1
 
+// Constants for `upright_rotation`
+#define LIMINE_FRAMEBUFFER_ROTATE_0 0
+#define LIMINE_FRAMEBUFFER_ROTATE_90 1
+#define LIMINE_FRAMEBUFFER_ROTATE_180 2
+#define LIMINE_FRAMEBUFFER_ROTATE_270 3
+
 struct limine_framebuffer {
     void *address;
     uint64_t width;
@@ -991,6 +997,9 @@ struct limine_framebuffer {
     /* Response revision 1 */
     uint64_t mode_count;
     struct limine_video_mode **modes;
+
+    /* Response revision 2 */
+    uint64_t upright_rotation;
 };
 ```
 
@@ -1014,6 +1023,17 @@ struct limine_video_mode {
     uint8_t blue_mask_shift;
 };
 ```
+
+`upright_rotation` is the clockwise turn, one of the `LIMINE_FRAMEBUFFER_ROTATE_*`
+constants, that what is drawn in the framebuffer needs to look upright, as on a panel
+mounted turned in its casing. It is `LIMINE_FRAMEBUFFER_ROTATE_0` when no such turn is
+known. With `LIMINE_FRAMEBUFFER_ROTATE_90`, for example, pixel (x, y) of an upright
+picture `height` pixels wide and `width` pixels high goes to framebuffer pixel
+(`width` - 1 - y, x).
+
+The other fields, and the video modes in `modes`, describe the framebuffer as it is laid
+out in memory, whatever `upright_rotation` says. Where the firmware is known to misreport
+them, the bootloader passes them corrected.
 
 ### Paging Mode Feature
 

@@ -159,6 +159,11 @@ struct limine_hhdm_request {
 
 #define LIMINE_FRAMEBUFFER_RGB 1
 
+#define LIMINE_FRAMEBUFFER_ROTATE_0 0
+#define LIMINE_FRAMEBUFFER_ROTATE_90 1
+#define LIMINE_FRAMEBUFFER_ROTATE_180 2
+#define LIMINE_FRAMEBUFFER_ROTATE_270 3
+
 struct limine_video_mode {
     uint64_t pitch;
     uint64_t width;
@@ -192,6 +197,8 @@ struct limine_framebuffer {
     /* Response revision 1 */
     uint64_t mode_count;
     LIMINE_PTR(struct limine_video_mode **) modes;
+    /* Response revision 2 */
+    uint64_t upright_rotation;
 };
 
 struct limine_framebuffer_response {
